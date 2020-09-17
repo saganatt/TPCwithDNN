@@ -9,6 +9,8 @@ os.environ['PYTHONHASHSEED'] = str(SEED)
 import random
 random.seed(SEED)
 
+from contextlib import suppress
+
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -22,6 +24,7 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import RootMeanSquaredError
 from tensorflow.keras.models import model_from_json
 from tensorflow.keras.utils import plot_model
+from tensorflow.distribute import MirroredStrategy # pylint: disable=import-error
 
 from root_numpy import fill_hist # pylint: disable=import-error
 from ROOT import TH1F, TH2F, TFile, TCanvas, TLegend, TPaveText, gPad # pylint: disable=import-error, no-name-in-module
@@ -49,6 +52,11 @@ class DnnOptimiser:
     def __init__(self, data_param, case):
         self.logger = get_logger()
         self.logger.info("DnnOptimizer::Init\nCase: %s", case)
+
+        self.strategy = None
+        if data_param["run_parallel"]:
+            self.strategy = MirroredStrategy() # if data_param["run_parallel"] else None
+            self.logger.info("Number of devices: %s", self.strategy.num_replicas_in_sync)
 
         # Dataset config
         self.grid_phi = data_param["grid_phi"]
@@ -153,6 +161,7 @@ class DnnOptimiser:
     def train(self):
         self.logger.info("DnnOptimizer::train")
 
+<<<<<<< HEAD
         training_generator = FluctuationDataGenerator(self.partition['train'],
                                                       data_dir=self.dirinput_train, **self.params)
         validation_generator = FluctuationDataGenerator(self.partition['validation'],
@@ -166,6 +175,20 @@ class DnnOptimiser:
             metrics = self.metrics
         model.compile(loss=self.lossfun, optimizer=Adam(lr=self.adamlr),
                       metrics=[metrics]) # Mean squared error
+=======
+        with self.strategy.scope() if self.strategy is not None else suppress():
+            training_generator = FluctuationDataGenerator(self.partition['train'],
+                                                          data_dir=self.dirinput_train,
+                                                          **self.params)
+            validation_generator = FluctuationDataGenerator(self.partition['validation'],
+                                                            data_dir=self.dirinput_test,
+                                                            **self.params)
+            model = u_net((self.grid_phi, self.grid_r, self.grid_z, self.dim_input),
+                          depth=self.depth, batchnorm=self.batch_normalization,
+                          pool_type=self.pooling, start_channels=self.filters, dropout=self.dropout)
+            model.compile(loss=self.lossfun, optimizer=Adam(lr=self.adamlr),
+                          metrics=[self.metrics]) # Mean squared error
+>>>>>>> Add parallel execution option
 
         model.summary()
         plot_model(model, to_file='%s/model_%s_nEv%d.png' % \
@@ -179,7 +202,7 @@ class DnnOptimiser:
         model._get_distribution_strategy = lambda: None
         his = model.fit(training_generator,
                         validation_data=validation_generator,
-                        use_multiprocessing=False,
+                        # use_multiprocessing=False,
                         epochs=self.epochs, callbacks=[tensorboard_callback])
 
         plt.style.use("ggplot")
@@ -208,14 +231,15 @@ class DnnOptimiser:
     def apply(self):
         self.logger.info("DnnOptimizer::apply, input size: %d", self.dim_input)
 
-        json_file = open("%s/model_%s_nEv%d.json" % \
-                         (self.dirmodel, self.suffix, self.train_events), "r")
-        loaded_model_json = json_file.read()
-        json_file.close()
-        loaded_model = \
-            model_from_json(loaded_model_json, {'SymmetryPadding3d' : SymmetryPadding3d})
-        loaded_model.load_weights("%s/model_%s_nEv%d.h5" % \
-                                  (self.dirmodel, self.suffix, self.train_events))
+        with self.strategy.scope() if self.strategy is not None else suppress():
+            json_file = open("%s/model_%s_nEv%d.json" % \
+                             (self.dirmodel, self.suffix, self.train_events), "r")
+            loaded_model_json = json_file.read()
+            json_file.close()
+            loaded_model = \
+                model_from_json(loaded_model_json, {'SymmetryPadding3d' : SymmetryPadding3d})
+            loaded_model.load_weights("%s/model_%s_nEv%d.h5" % \
+                                      (self.dirmodel, self.suffix, self.train_events))
 
         myfile = TFile.Open("%s/output_%s_nEv%d.root" % \
                             (self.dirval, self.suffix, self.train_events), "recreate")
@@ -239,7 +263,8 @@ class DnnOptimiser:
             inputs_single[0, :, :, :, :] = inputs_
             exp_outputs_single[0, :, :, :, :] = exp_outputs_
 
-            distortion_predict_group = loaded_model.predict(inputs_single)
+            with self.strategy.scope() if self.strategy is not None else suppress():
+                distortion_predict_group = loaded_model.predict(inputs_single)
             distortion_predict_flat_m = distortion_predict_group.reshape(-1, 1)
             distortion_predict_flat_a = distortion_predict_group.flatten()
 

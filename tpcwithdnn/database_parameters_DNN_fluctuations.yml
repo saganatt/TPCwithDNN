@@ -42,3 +42,4 @@ DNN_fluctuations:
   lossfun: mse
   metrics: mse
   adamlr: 0.001000
+  run_parallel: false
