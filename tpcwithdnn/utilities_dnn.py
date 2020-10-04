@@ -55,7 +55,7 @@ def u_net(input_shape, start_channels=4, depth=4, inc_rate=2.0, activation="relu
           batchnorm=False, pool_type=0, upconv=True, residual=False):
     i = Input(shape=input_shape)
     output = level_block(i, start_channels, depth, inc_rate, activation, dropout, batchnorm,
-                         pool_type, upconv, residual)
+                         1, upconv, residual)
     output = Conv3D(1, 1, activation="linear", padding="same", kernel_initializer="normal")(output)
     return Model(inputs=i, outputs=output)
 

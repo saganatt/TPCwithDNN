@@ -6,6 +6,8 @@ import datetime
 
 SEED = 12345
 os.environ['PYTHONHASHSEED'] = str(SEED)
+os.environ['TF_DETERMINISTIC_OPS'] = "1"
+
 import random
 random.seed(SEED)
 
@@ -53,9 +55,12 @@ class DnnOptimiser:
         self.logger = get_logger()
         self.logger.info("DnnOptimizer::Init\nCase: %s", case)
 
+        gpus = tf.config.experimental.list_physical_devices('GPU')
+        self.logger.info("Number of visible GPU devices: %d", len(gpus))
+
         self.strategy = None
         if data_param["run_parallel"]:
-            self.strategy = MirroredStrategy() # if data_param["run_parallel"] else None
+            self.strategy = MirroredStrategy(devices=["/gpu:0", "/gpu:1"]) # if data_param["run_parallel"] else None
             self.logger.info("Number of devices: %s", self.strategy.num_replicas_in_sync)
 
         # Dataset config
@@ -198,12 +203,13 @@ class DnnOptimiser:
         #log_dir = "logs/" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
         log_dir = 'logs/' + '%s_nEv%d' % (self.suffix, self.train_events)
         tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+        # tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
         model._get_distribution_strategy = lambda: None
         his = model.fit(training_generator,
                         validation_data=validation_generator,
                         # use_multiprocessing=False,
-                        epochs=self.epochs, callbacks=[tensorboard_callback])
+                        epochs=self.epochs) #, callbacks=[tensorboard_callback])
 
         plt.style.use("ggplot")
         plt.figure()

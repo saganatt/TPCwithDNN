@@ -1,7 +1,7 @@
 case: DNN_fluctuations
 dotrain: true
-doapply: true
-doplot: true
+doapply: false
+doplot: false
 dogrid: false
 doprofile: false
 docreatevaldata: false
