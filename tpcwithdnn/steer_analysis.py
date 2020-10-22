@@ -24,6 +24,7 @@ if os.environ.get('TPCwithDNNSETMEMLIMIT'):
             tf.config.experimental.set_virtual_device_configuration(gpus[0], \
                 [tf.config.experimental.VirtualDeviceConfiguration(memory_limit= \
                 int(os.environ.get('TPCwithDNNSETMEMLIMIT')))])
+            print("Setting memory limit to: %s" % os.environ.get('TPCwithDNNSETMEMLIMIT'))
             # for gpu in gpus:
             #     tf.config.experimental.set_memory_growth(gpu, True)
         except RuntimeError as e:

@@ -67,8 +67,8 @@ for train in 1000 2000 4000; do
     sed -i "s/test_events:\ \[[1-9]00\]/test_events:\ \[${test}\]/" database_parameters_DNN_fluctuations.yml
     echo "${train} train events, ${test} test events"
     # /opt/rocm/bin/rocprof --sys-trace python steer_analysis.py > debug.txt 2>&1
-    time python steer_analysis.py > debug.txt 2>&1
-    DIRNAME=run_1-train_${train}
+    time TPCwithDNNSETMEMLIMIT=16384 python steer_analysis.py > debug.txt 2>&1
+    DIRNAME=16_hdd_run_1-train_${train}
     mkdir -p $DIRNAME 
     mv plots/ $DIRNAME/
     mv model_new_random/ $DIRNAME/
