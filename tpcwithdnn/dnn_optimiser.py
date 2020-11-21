@@ -6,6 +6,13 @@ import datetime
 
 SEED = 12345
 os.environ['PYTHONHASHSEED'] = str(SEED)
+
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
+os.environ['TF_DETERMINISTIC_OPS'] = "1"
+# Make TF using 1 thread on CPU
+# tf.config.threading.set_intra_op_parallelism_threads(1)
+# tf.config.threading.set_inter_op_parallelism_threads(1)
+
 import random
 random.seed(SEED)
 
@@ -180,7 +187,8 @@ class DnnOptimiser:
         his = model.fit(training_generator,
                         validation_data=validation_generator,
                         use_multiprocessing=False,
-                        epochs=self.epochs, callbacks=[tensorboard_callback])
+                        epochs=self.epochs, callbacks=[tensorboard_callback],
+                        shuffle=False)
 
         plt.style.use("ggplot")
         plt.figure()
