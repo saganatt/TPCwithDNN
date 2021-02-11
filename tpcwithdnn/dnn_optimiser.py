@@ -1,13 +1,21 @@
 # pylint: disable=too-many-instance-attributes, too-many-statements, too-many-arguments, fixme
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring
-# pylint: disable=protected-access, too-many-locals
+# pylint: disable=protected-access, too-many-locals, wrong-import-position
 import os
 import datetime
+
+SEED = 12345
+os.environ['PYTHONHASHSEED'] = str(SEED)
 import random
+random.seed(SEED)
+
 import matplotlib
 import matplotlib.pyplot as plt
 
 import numpy as np
+np.random.seed(SEED)
+import tensorflow as tf
+tf.random.set_seed(SEED)
 
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.optimizers import Adam
@@ -58,6 +66,7 @@ class DnnOptimiser:
         # Directories
         self.dirmodel = data_param["dirmodel"]
         self.dirval = data_param["dirval"]
+        self.dirplots = data_param["dirplots"]
         train_dir = data_param["dirinput_bias"] if data_param["train_bias"] \
                     else data_param["dirinput_nobias"]
         test_dir = data_param["dirinput_bias"] if data_param["test_bias"] \
@@ -105,14 +114,14 @@ class DnnOptimiser:
         self.suffix_ds = "phi%d_r%d_z%d" % \
                 (self.grid_phi, self.grid_r, self.grid_z)
 
-        if not os.path.isdir("plots"):
-            os.makedirs("plots")
-
         if not os.path.isdir(self.dirmodel):
             os.makedirs(self.dirmodel)
 
         if not os.path.isdir(self.dirval):
             os.makedirs(self.dirval)
+
+        if not os.path.isdir(self.dirplots):
+            os.makedirs(self.dirplots)
 
         self.logger.info("I am processing the configuration %s", self.suffix)
         if self.dim_output > 1:
@@ -129,8 +138,6 @@ class DnnOptimiser:
         self.train_events = 0
         self.test_events = 0
         self.apply_events = 0
-
-        random.seed(12345)
 
         gROOT.SetStyle("Plain")
         gROOT.SetBatch()
@@ -150,7 +157,8 @@ class DnnOptimiser:
                       metrics=[self.metrics]) # Mean squared error
 
         model.summary()
-        plot_model(model, to_file='plots/model_%s_nEv%d.png' % (self.suffix, self.train_events),
+        plot_model(model, to_file='%s/model_%s_nEv%d.png' % \
+                   (self.dirplots, self.suffix, self.train_events),
                    show_shapes=True, show_layer_names=True)
 
         #log_dir = "logs/" + datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -176,7 +184,7 @@ class DnnOptimiser:
         plt.xlabel("Epoch #")
         plt.ylabel("Loss/Accuracy")
         plt.legend(loc="lower left")
-        plt.savefig("plots/plot_%s_nEv%d.png" % (self.suffix, self.train_events))
+        plt.savefig("%s/plot_%s_nEv%d.png" % (self.dirplots, self.suffix, self.train_events))
 
         model_json = model.to_json()
         with open("%s/model_%s_nEv%d.json" % (self.dirmodel, self.suffix, self.train_events), "w") \
@@ -295,7 +303,8 @@ class DnnOptimiser:
 
 
     @staticmethod
-    def plot_distorsion(h_dist, h_deltas, h_deltas_vs_dist, prof, suffix, opt_name, train_events):
+    def plot_distorsion(h_dist, h_deltas, h_deltas_vs_dist, prof, suffix, opt_name,
+                        dirplots, train_events):
         cev = TCanvas("canvas_%s_nEv%d_%s" % (suffix, train_events, opt_name),
                       "canvas_%s_nEv%d_%s" % (suffix, train_events, opt_name),
                       1400, 1000)
@@ -323,7 +332,7 @@ class DnnOptimiser:
         #h_deltas_vs_dist.GetXaxis().SetTitle("Numeric R distorsion (cm)")
         #h_deltas_vs_dist.GetYaxis().SetTitle("(Predicted - Numeric) R distorsion (cm)")
         #h_deltas_vs_dist.Draw("colz")
-        cev.SaveAs("plots/canvas_%s_nEv%d.pdf" % (suffix, train_events))
+        cev.SaveAs("%s/canvas_%s_nEv%d.pdf" % (dirplots, suffix, train_events))
 
     def plot(self):
         self.logger.info("DnnOptimizer::plot")
@@ -342,7 +351,7 @@ class DnnOptimiser:
                     myfile.Get("%s_all_events_%s" % (self.profile_name, self.suffix))
                 self.plot_distorsion(h_dist_all_events, h_deltas_all_events,
                                      h_deltas_vs_dist_all_events, profile_deltas_vs_dist_all_events,
-                                     self.suffix, opt_name, self.train_events)
+                                     self.suffix, opt_name, self.dirplots, self.train_events)
 
                 counter = 0
                 for iexperiment in self.partition['apply']:
@@ -352,7 +361,7 @@ class DnnOptimiser:
                     h_deltas_vs_dist = myfile.Get("%s_%s" % (self.h_deltas_vs_dist_name, h_suffix))
                     profile = myfile.Get("%s_%s" % (self.profile_name, h_suffix))
                     self.plot_distorsion(h_dist, h_deltas, h_deltas_vs_dist, profile,
-                                         h_suffix, opt_name, self.train_events)
+                                         h_suffix, opt_name, self.dirplots, self.train_events)
                     counter = counter + 1
                     if counter > 100:
                         return
@@ -479,7 +488,8 @@ class DnnOptimiser:
 
                 leg.Draw()
                 self.add_desc_to_canvas()
-                self.save_canvas(canvas, frame, "plots/{0}".format(date), hist_name, file_formats)
+                self.save_canvas(canvas, frame, "{}/{}".format(self.dirplots, date),
+                                 hist_name, file_formats)
 
     def draw_profile(self, events_counts):
         self.draw_multievent_hist(events_counts, "mean", "profile", self.profile_name)
