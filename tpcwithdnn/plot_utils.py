@@ -99,18 +99,19 @@ def plot(config):
                         profile_deltas_vs_dist_all_events,
                         config.suffix, opt_name)
 
-        counter = 0
-        for iexperiment in config.partition['apply']:
-            h_suffix = "Ev%d_Mean%d_%s" % (iexperiment[0], iexperiment[1], config.suffix)
-            h_dist = myfile.Get("%s_%s" % (config.h_dist_name, h_suffix))
-            h_deltas = myfile.Get("%s_%s" % (config.h_deltas_name, h_suffix))
-            h_deltas_vs_dist = myfile.Get("%s_%s" % (config.h_deltas_vs_dist_name, h_suffix))
-            profile = myfile.Get("%s_%s" % (config.profile_name, h_suffix))
-            plot_distortion(config, h_dist, h_deltas, h_deltas_vs_dist, profile,
-                            h_suffix, opt_name)
-            counter = counter + 1
-            if counter > 100:
-                return
+        if config.per_event_hists:
+            counter = 0
+            for iexperiment in config.partition['apply']:
+                h_suffix = "Ev%d_Mean%d_%s" % (iexperiment[0], iexperiment[1], config.suffix)
+                h_dist = myfile.Get("%s_%s" % (config.h_dist_name, h_suffix))
+                h_deltas = myfile.Get("%s_%s" % (config.h_deltas_name, h_suffix))
+                h_deltas_vs_dist = myfile.Get("%s_%s" % (config.h_deltas_vs_dist_name, h_suffix))
+                profile = myfile.Get("%s_%s" % (config.profile_name, h_suffix))
+                plot_distortion(config, h_dist, h_deltas, h_deltas_vs_dist, profile,
+                                h_suffix, opt_name)
+                counter = counter + 1
+                if counter > 100:
+                    return
 
 def plot_distortion(config, h_dist, h_deltas, h_deltas_vs_dist, prof, suffix, opt_name):
     cev = TCanvas("canvas_%s_nEv%d_%s" % (suffix, config.train_events, opt_name),

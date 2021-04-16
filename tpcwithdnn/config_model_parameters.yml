@@ -33,7 +33,7 @@ xgboost:
   active: True
   train_events: [1000]
   test_events: [0] # dummy for xgboost
-  apply_events: [1000]
+  apply_events: [100]
   params:
     n_estimators: 100 # 850
     max_depth: 3
