@@ -127,6 +127,8 @@ class DNNSettings:
         self.common_settings = common_settings
         self.logger.info("DNNSettings::Init")
 
+        self.per_event_hists = True
+
         self.use_scaler = data_param["use_scaler"]
 
         # DNN config
@@ -193,6 +195,8 @@ class XGBoostSettings:
     def __init__(self, common_settings, data_param):
         self.common_settings = common_settings
         self.logger.info("XGBoostSettings::Init")
+
+        self.per_event_hists = False
 
         self.params = data_param["params"]
 
