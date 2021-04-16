@@ -69,36 +69,6 @@ class DnnOptimiser(Optimiser):
         self.plot_train_(his)
         self.save_model_(model)
 
-
-    def save_model_(self, model):
-        model_json = model.to_json()
-        with open("%s/model_%s_nEv%d.json" % (self.config.dirmodel, self.config.suffix,
-                                              self.config.train_events), "w") \
-            as json_file:
-            json_file.write(model_json)
-        model.save_weights("%s/model_%s_nEv%d.h5" % (self.config.dirmodel, self.config.suffix,
-                                                     self.config.train_events))
-        self.config.logger.info("Saved trained DNN model to disk")
-
-
-    def plot_train_(self, his):
-        plt.style.use("ggplot")
-        plt.figure()
-        plt.yscale('log')
-        plt.plot(np.arange(0, self.config.epochs), his.history["loss"], label="train_loss")
-        plt.plot(np.arange(0, self.config.epochs), his.history["val_loss"], label="val_loss")
-        plt.plot(np.arange(0, self.config.epochs), his.history[self.config.metrics],
-                 label="train_" + self.config.metrics)
-        plt.plot(np.arange(0, self.config.epochs), his.history["val_" + self.config.metrics],
-                 label="val_" + self.config.metrics)
-        plt.title("Training Loss and Accuracy on Dataset")
-        plt.xlabel("Epoch #")
-        plt.ylabel("Loss/Accuracy")
-        plt.legend(loc="lower left")
-        plt.savefig("%s/plot_%s_nEv%d.png" % (self.config.dirplots, self.config.suffix,
-                                              self.config.train_events))
-
-
     def apply(self):
         self.config.logger.info("DnnOptimiser::apply, input size: %d", self.config.dim_input)
         loaded_model = self.load_model_()
@@ -125,25 +95,20 @@ class DnnOptimiser(Optimiser):
             exp_outputs_single[0, :, :, :, :] = exp_outputs_
 
             distortion_predict_group = loaded_model.predict(inputs_single)
-            distortion_predict_flat_m = distortion_predict_group.reshape(-1, 1)
-            distortion_predict_flat_a = distortion_predict_group.flatten()
 
-            distortion_numeric_group = exp_outputs_single
-            distortion_numeric_flat_m = distortion_numeric_group.reshape(-1, 1)
-            distortion_numeric_flat_a = distortion_numeric_group.flatten()
-            deltas_flat_a = (distortion_predict_flat_a - distortion_numeric_flat_a)
-            deltas_flat_m = (distortion_predict_flat_m - distortion_numeric_flat_m)
-
+            distortion_numeric_flat_m, distortion_predict_flat_m, deltas_flat_a, deltas_flat_m =\
+                plot_utils.get_apply_results_single_event(distortion_predict_group,
+                                                          exp_outputs_single)
             plot_utils.fill_apply_tree_single_event(self.config, indexev,
                                                     distortion_numeric_flat_m,
                                                     distortion_predict_flat_m,
                                                     deltas_flat_a, deltas_flat_m)
+
             fill_hist(h_dist_all_events, np.concatenate((distortion_numeric_flat_m, \
                                                          distortion_predict_flat_m), axis=1))
             fill_hist(h_deltas_all_events, deltas_flat_a)
             fill_hist(h_deltas_vs_dist_all_events,
                       np.concatenate((distortion_numeric_flat_m, deltas_flat_m), axis=1))
-
 
         h_dist_all_events.Write()
         h_deltas_all_events.Write()
@@ -158,6 +123,19 @@ class DnnOptimiser(Optimiser):
         myfile.Close()
         self.config.logger.info("Done apply")
 
+    def search_grid(self):
+        raise NotImplementedError("Search grid method not implemented yet")
+
+    def save_model_(self, model):
+        model_json = model.to_json()
+        with open("%s/model_%s_nEv%d.json" % (self.config.dirmodel, self.config.suffix,
+                                              self.config.train_events), "w") \
+            as json_file:
+            json_file.write(model_json)
+        model.save_weights("%s/model_%s_nEv%d.h5" % (self.config.dirmodel, self.config.suffix,
+                                                     self.config.train_events))
+        self.config.logger.info("Saved trained DNN model to disk")
+
     def load_model_(self):
         with open("%s/model_%s_nEv%d.json" % \
                   (self.config.dirmodel, self.config.suffix, self.config.train_events), "r") as f:
@@ -169,5 +147,19 @@ class DnnOptimiser(Optimiser):
                                    self.config.train_events))
         return loaded_model
 
-    def search_grid(self):
-        raise NotImplementedError("Search grid method not implemented yet")
+    def plot_train_(self, his):
+        plt.style.use("ggplot")
+        plt.figure()
+        plt.yscale('log')
+        plt.plot(np.arange(0, self.config.epochs), his.history["loss"], label="train_loss")
+        plt.plot(np.arange(0, self.config.epochs), his.history["val_loss"], label="val_loss")
+        plt.plot(np.arange(0, self.config.epochs), his.history[self.config.metrics],
+                 label="train_" + self.config.metrics)
+        plt.plot(np.arange(0, self.config.epochs), his.history["val_" + self.config.metrics],
+                 label="val_" + self.config.metrics)
+        plt.title("Training Loss and Accuracy on Dataset")
+        plt.xlabel("Epoch #")
+        plt.ylabel("Loss/Accuracy")
+        plt.legend(loc="lower left")
+        plt.savefig("%s/plot_%s_nEv%d.png" % (self.config.dirplots, self.config.suffix,
+                                              self.config.train_events))
