@@ -26,8 +26,8 @@ common:
   opt_predout: [1, 0, 0] #R, Rphi, z output distorsion predictions
   nameopt_predout: [R, RPhi, Z] #R, RPhi, Z output distorsion predictions
   maxrandomfiles: 1000 #this is the total number of random events generated
-  range_mean_index: [0,6] # min and max index of mean SC configurations
-  max_events: 7000 # number of all available events
+  range_mean_index: [0, 44] # min and max index of mean SC configurations
+  max_events: 45000 # number of all available events
 
 xgboost:
   active: True
