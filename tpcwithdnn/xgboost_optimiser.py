@@ -27,7 +27,7 @@ class XGBoostOptimiser(Optimiser):
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
         self.load_model_()
-        inputs, exp_outputs = self.get_train_apply_data_("train")
+        inputs, exp_outputs = self.get_train_apply_data_("apply")
         pred_outputs = self.model.predict(inputs)
         self.plot_apply_(exp_outputs, pred_outputs)
         self.config.logger.info("Done apply")
