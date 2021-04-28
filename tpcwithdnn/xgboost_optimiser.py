@@ -65,7 +65,9 @@ class XGBoostOptimiser(Optimiser):
             inputs_single, exp_outputs_single = load_train_apply_idc(self.config.dirinput_train,
                                                        indexev, self.config.input_z_range,
                                                        self.config.output_z_range,
-                                                       self.config.opt_predout)
+                                                       self.config.opt_predout,
+                                                       self.config.downsample,
+                                                       self.config.downsample_frac)
             inputs.append(inputs_single)
             exp_outputs.append(exp_outputs_single)
         inputs = np.concatenate(inputs)

@@ -76,15 +76,11 @@ def load_data_original(input_data, event_index):
 
     return [np.load(f) for f in files]
 
-def load_data_derivatives_ref_mean_idc(dirinput, z_range):
-    z_pos_file = "%s/Pos/vecZPos.npy" % dirinput
+def load_data_derivatives_ref_mean_idc(dirinput, vec_sel_z):
     mean_plus_prefix = "27-Const_6_Lin_0_Para_0"
     mean_minus_prefix = "36-Const_-6_Lin_0_Para_0"
     ref_mean_sc_plus_file = "%s/Mean/%s-vecMeanSC.npy" % (dirinput, mean_plus_prefix)
     ref_mean_sc_minus_file = "%s/Mean/%s-vecMeanSC.npy" % (dirinput, mean_minus_prefix)
-
-    vec_z_pos = np.load(z_pos_file)
-    vec_sel_z = (z_range[0] <= vec_z_pos) & (vec_z_pos < z_range[1])
 
     arr_der_ref_mean_sc = np.load(ref_mean_sc_plus_file)[vec_sel_z] - \
                           np.load(ref_mean_sc_minus_file)[vec_sel_z]
@@ -133,8 +129,21 @@ def load_data_derivatives_ref_mean(inputdata, z_range):
     return arr_der_ref_mean_sc, mat_der_ref_mean_dist
 
 
-def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range, opt_pred):
-    [_, _, vec_z_pos,
+def downsample_data(data_size, downsample_frac):
+    chosen = [False] * data_size
+    num_points = int(round(downsample_frac * data_size))
+    for _ in range(num_points):
+        sel_ind = random.randrange(0, data_size)
+        while not chosen[sel_ind]:
+            sel_ind = random.randrange(0, data_size)
+        chosen[sel_ind] = True
+    return chosen
+
+
+# pylint: disable=too-many-locals
+def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
+                      opt_pred, downsample, downsample_frac):
+    [vec_r_pos, vec_rphi_pos, vec_z_pos,
      num_mean_zero_idc_a, num_mean_zero_idc_c, num_random_zero_idc_a, num_random_zero_idc_c,
      vec_mean_one_idc_a, vec_mean_one_idc_c, vec_random_one_idc_a, vec_random_one_idc_c,
      *_,
@@ -143,6 +152,15 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range, opt_
      vec_mean_corr_z, vec_random_corr_z] = load_data_original_idc(dirinput, event_index)
 
     vec_sel_out_z = (output_z_range[0] <= vec_z_pos) & (vec_z_pos < output_z_range[1])
+    vec_sel_in_z = (input_z_range[0] <= vec_z_pos) & (vec_z_pos < input_z_range[1])
+
+    if downsample:
+        chosen_points = downsample_data(len(vec_sel_in_z), downsample_frac)
+        vec_sel_in_z = vec_sel_in_z & chosen_points
+
+    vec_r_pos = vec_r_pos[vec_sel_in_z]
+    vec_rphi_pos = vec_rphi_pos[vec_sel_in_z]
+    vec_z_pos = vec_z_pos[vec_sel_in_z]
 
     data_a = (vec_random_one_idc_a - vec_mean_one_idc_a,
               num_random_zero_idc_a - num_mean_zero_idc_a)
@@ -152,7 +170,7 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range, opt_
 
     mat_mean_corr = (vec_mean_corr_r, vec_mean_corr_rphi, vec_mean_corr_z)
     mat_random_corr = (vec_random_corr_r, vec_random_corr_rphi, vec_random_corr_z)
-    _, mat_der_ref_mean_corr = load_data_derivatives_ref_mean_idc(dirinput, input_z_range)
+    _, mat_der_ref_mean_corr = load_data_derivatives_ref_mean_idc(dirinput, vec_sel_in_z)
 
     vec_mean_corr = []
     vec_random_corr = []
@@ -164,10 +182,13 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range, opt_
             vec_random_corr = np.hstack((vec_random_corr, vec_random))
             vec_der_ref_mean_corr = np.hstack((vec_der_ref_mean_corr, vec_der_ref_mean))
 
-    vec_exp_corr_fluc = vec_random_corr - vec_mean_corr
-    vec_exp_corr_fluc = vec_exp_corr_fluc[vec_sel_out_z]
+    vec_exp_corr_fluc = (vec_random_corr - vec_mean_corr)[vec_sel_out_z]
 
-    return vec_one_idc_fluc, vec_der_ref_mean_corr, num_zero_idc_fluc, vec_exp_corr_fluc
+    inputs = np.array([[r_pos, rphi_pos, z_pos, num_der, *vec_one_idc_fluc, *num_zero_idc_fluc]
+                        for (r_pos, rphi_pos, z_pos, num_der)
+                        in zip(vec_r_pos, vec_rphi_pos, vec_z_pos, vec_der_ref_mean_corr)])
+
+    return inputs, vec_exp_corr_fluc
 
 
 def load_data(input_data, event_index, input_z_range, output_z_range):
@@ -213,13 +234,10 @@ def load_data(input_data, event_index, input_z_range, output_z_range):
 
 
 def load_train_apply_idc(dirinput, event_index, input_z_range, output_z_range,
-                         opt_pred):
+                         opt_pred, downsample, downsample_frac):
 
-    (vec_one_idc_fluc, vec_der_ref_mean_corr, num_zero_idc_fluc, exp_outputs) =\
-        load_data_one_idc(dirinput, event_index, input_z_range, output_z_range, opt_pred)
-
-    inputs = np.array([[*vec_one_idc_fluc, num_der, *num_zero_idc_fluc]
-                        for num_der in vec_der_ref_mean_corr])
+    inputs, exp_outputs = load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
+                                           opt_pred, downsample, downsample_frac)
 
     dim_output = sum(opt_pred)
     if dim_output > 1:

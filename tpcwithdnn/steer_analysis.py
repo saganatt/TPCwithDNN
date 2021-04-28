@@ -74,9 +74,9 @@ def get_events_counts(train_events, test_events, apply_events):
 def print_time(start, end, comment):
     logger = get_logger()
     elapsed_time = start - end
-    time_min = elapsed_time // 60
-    time_sec = elapsed_time - time_min
-    logger.info("Elapsed time %s: %dm %d s", comment, time_min, time_sec)
+    time_min = int(elapsed_time // 60)
+    time_sec = int(elapsed_time - time_min)
+    logger.info("Elapsed time %s: %dm %ds", comment, time_min, time_sec)
 
 def run_model_and_val(model, dataval, default, config_parameters):
     dataval.set_model(model)
