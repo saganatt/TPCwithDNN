@@ -1,7 +1,11 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 from xgboost import XGBRFRegressor
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 
 from root_numpy import fill_hist # pylint: disable=import-error
 from ROOT import TFile # pylint: disable=import-error, no-name-in-module
@@ -22,6 +26,7 @@ class XGBoostOptimiser(Optimiser):
         self.config.logger.info("XGBoostOptimiser::train")
         inputs, exp_outputs = self.get_train_apply_data_("train")
         self.model.fit(inputs, exp_outputs)
+        self.plot_train_(inputs, exp_outputs, 10)
         self.save_model(self.model)
 
     def apply(self):
@@ -63,13 +68,8 @@ class XGBoostOptimiser(Optimiser):
                                                                self.config.opt_predout)
             inputs.append(inputs_single)
             exp_outputs.append(exp_outputs_single)
-        print("Different inputs: {} shape of first: {}"
-              .format(len(inputs), inputs[0].shape))
-        print("Different outputs: {} shape of first: {}"
-              .format(len(exp_outputs), exp_outputs[0].shape))
         inputs = np.concatenate(inputs)
         exp_outputs = np.concatenate(exp_outputs)
-        print("Inputs concatenated: {} outputs: {}".format(inputs.shape, exp_outputs.shape))
         return inputs, exp_outputs
 
     def plot_apply_(self, exp_outputs, pred_outputs):
@@ -98,3 +98,28 @@ class XGBoostOptimiser(Optimiser):
                                            self.config.suffix, "all_events_")
 
         myfile.Close()
+
+    def plot_train_(self, x_data, y_data, npoints):
+        plt.figure()
+        #plt.yscale("log")
+        x_train, x_val, y_train, y_val = train_test_split(x_data, y_data, test_size=0.2)
+        train_errors, val_errors = [], []
+        high = len(x_train)
+        low = 100
+        step_ = int((high - low) / npoints)
+        arrayvalues = np.arange(start=low, stop=high, step=step_)
+        for m in arrayvalues:
+            self.model.fit(x_train[:m], y_train[:m])
+            y_train_predict = self.model.predict(x_train[:m])
+            y_val_predict = self.model.predict(x_val)
+            train_errors.append(mean_squared_error(y_train_predict, y_train[:m]))
+            val_errors.append(mean_squared_error(y_val_predict, y_val))
+        plt.plot(arrayvalues, np.sqrt(train_errors), ".", label="train")
+        plt.plot(arrayvalues, np.sqrt(val_errors), ".", label="validation")
+        plt.ylim([0, np.amax(np.sqrt(val_errors)) * 2])
+        plt.title("Learning curve BDT")
+        plt.xlabel("Training set size")
+        plt.ylabel("RMSE")
+        plt.legend(loc="lower left")
+        plt.savefig("%s/learning_plot_%s_nEv%d.png" % (self.config.dirplots, self.config.suffix,
+                                                       self.config.train_events))

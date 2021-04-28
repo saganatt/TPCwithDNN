@@ -161,5 +161,5 @@ class DnnOptimiser(Optimiser):
         plt.xlabel("Epoch #")
         plt.ylabel("Loss/Accuracy")
         plt.legend(loc="lower left")
-        plt.savefig("%s/plot_%s_nEv%d.png" % (self.config.dirplots, self.config.suffix,
-                                              self.config.train_events))
+        plt.savefig("%s/learning_plot_%s_nEv%d.png" % (self.config.dirplots, self.config.suffix,
+                                                       self.config.train_events))
