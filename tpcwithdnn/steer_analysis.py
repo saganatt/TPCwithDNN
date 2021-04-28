@@ -4,6 +4,7 @@ main script for doing tpc calibration with dnn
 # pylint: disable=fixme
 import sys
 import os
+from timeit import default_timer as timer
 
 # Needs to be set before any tensorflow import to suppress logging
 # pylint: disable=wrong-import-position
@@ -70,12 +71,25 @@ def get_events_counts(train_events, test_events, apply_events):
         raise ValueError("Different number of ranges specified for train/test/apply")
     return zip(train_events, test_events, apply_events)
 
+def print_time(start, end, comment):
+    logger = get_logger()
+    elapsed_time = start - end
+    time_min = elapsed_time // 60
+    time_sec = elapsed_time - time_min
+    logger.info("Elapsed time %s: %dm %d s", comment, time_min, time_sec)
+
 def run_model_and_val(model, dataval, default, config_parameters):
     dataval.set_model(model)
     if default["dotrain"] is True:
+        start = timer()
         model.train()
+        end = timer()
+        print_time(start, end, "train")
     if default["doapply"] is True:
+        start = timer()
         model.apply()
+        end = timer()
+        print_time(start, end, "apply")
     if default["doplot"] is True:
         model.plot()
     if default["dogrid"] is True:

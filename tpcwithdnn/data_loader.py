@@ -273,6 +273,7 @@ def get_event_mean_indices(maxrandomfiles, range_mean_index, ranges):
     for ievent in np.arange(maxrandomfiles):
         for imean in np.arange(range_mean_index[0], range_mean_index[1] + 1):
             all_indices_events_means.append([ievent, imean])
+    # Equivalent to shuffling the data
     sel_indices_events_means = random.sample(all_indices_events_means, \
         maxrandomfiles * (range_mean_index[1] + 1 - range_mean_index[0]))
 
