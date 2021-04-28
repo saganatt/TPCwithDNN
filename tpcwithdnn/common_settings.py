@@ -197,6 +197,8 @@ class XGBoostSettings:
         self.logger.info("XGBoostSettings::Init")
 
         self.per_event_hists = False
+        self.downsample = data_param["downsample"]
+        self.downsample_frac = data_param["downsample_fraction"]
 
         self.params = data_param["params"]
 
