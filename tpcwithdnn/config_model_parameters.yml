@@ -31,9 +31,9 @@ common:
 
 xgboost:
   active: True
-  train_events: [30]
-  test_events: [0] # dummy for xgboost
-  apply_events: [10]
+  train_events: [100, 200, 400]
+  test_events: [0, 0, 0] # dummy for xgboost
+  apply_events: [100, 200, 200]
   downsample: False
   downsample_fraction: 0.2
   plot_train: True
