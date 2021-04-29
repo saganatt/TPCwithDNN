@@ -31,9 +31,9 @@ common:
 
 xgboost:
   active: True
-  train_events: [30]
-  test_events: [0] # dummy for xgboost
-  apply_events: [10]
+  train_events: [100, 200, 400]
+  test_events: [0, 0, 0] # dummy for xgboost
+  apply_events: [100, 200, 200]
   downsample: False
   downsample_fraction: 0.2
   plot_train: True
@@ -43,7 +43,7 @@ xgboost:
     max_depth: 3
     learning_rate: 1 #0.1
     objective: "reg:squarederror"
-    # booster: "gbtree" # it is overriden inside XGBRFRegressor
+    booster: "gbtree"
     tree_method: "hist" #"gpu_hist"
     n_gpus: 0
     n_jobs: 10

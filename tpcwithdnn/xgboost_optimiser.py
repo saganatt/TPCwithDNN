@@ -31,8 +31,6 @@ class XGBoostOptimiser(Optimiser):
         inputs, exp_outputs = self.get_train_apply_data_("train")
         end = timer()
         log_time(start, end, "data loading")
-        print("Train data shape: ", inputs.shape, " ", exp_outputs.shape)
-        print("Downsampling: ", self.config.downsample)
         start = timer()
         self.model.fit(inputs, exp_outputs)
         end = timer()
@@ -49,11 +47,19 @@ class XGBoostOptimiser(Optimiser):
 
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
-        self.load_model_()
+        #self.load_model_()
+        start = timer()
         inputs, exp_outputs = self.get_train_apply_data_("apply")
-        print("Apply data shape: ", inputs.shape, " ", exp_outputs.shape)
+        end = timer()
+        log_time(start, end, "data loading")
+        start = timer()
         pred_outputs = self.model.predict(inputs)
+        end = timer()
+        log_time(start, end, "actual predict")
+        start = timer()
         self.plot_apply_(exp_outputs, pred_outputs)
+        end = timer()
+        log_time(start, end, "plot apply")
         self.config.logger.info("Done apply")
 
     def search_grid(self):
@@ -80,8 +86,7 @@ class XGBoostOptimiser(Optimiser):
     def get_train_apply_data_(self, partition):
         inputs = []
         exp_outputs = []
-        for ind, indexev in enumerate(self.config.partition[partition]):
-            print("Event ", ind, " ", indexev)
+        for indexev in self.config.partition[partition]:
             inputs_single, exp_outputs_single = load_train_apply_idc(self.config.dirinput_train,
                                                        indexev, self.config.input_z_range,
                                                        self.config.output_z_range,
@@ -127,12 +132,10 @@ class XGBoostOptimiser(Optimiser):
         x_train, x_val, y_train, y_val = train_test_split(x_data, y_data, test_size=0.2)
         train_errors, val_errors = [], []
         high = len(x_train)
-        low = 100
+        low = 0
         step = int((high - low) / self.config.train_plot_npoints)
-        checkpoints = np.arange(start=low, stop=high, step=step)
-        print("Checkpoints: ", self.config.train_plot_npoints, " step: ", step, " values: ", checkpoints)
-        for ind, checkpoint in enumerate(checkpoints):
-            print("Fit ", ind, " on ", checkpoint, " points")
+        checkpoints = np.arange(start=step, stop=high+1, step=step)
+        for checkpoint in checkpoints:
             self.model.fit(x_train[:checkpoint], y_train[:checkpoint])
             y_train_predict = self.model.predict(x_train[:checkpoint])
             y_val_predict = self.model.predict(x_val)
