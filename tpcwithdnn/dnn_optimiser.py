@@ -1,6 +1,5 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring
 # pylint: disable=protected-access
-import matplotlib
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -20,8 +19,6 @@ from tpcwithdnn.symmetry_padding_3d import SymmetryPadding3d
 from tpcwithdnn.fluctuation_data_generator import FluctuationDataGenerator
 from tpcwithdnn.utilities_dnn import u_net
 from tpcwithdnn.data_loader import load_train_apply
-
-matplotlib.use("Agg")
 
 class DnnOptimiser(Optimiser):
     name = "dnn"
