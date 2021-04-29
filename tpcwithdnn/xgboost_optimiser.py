@@ -1,5 +1,5 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring
-import timeit
+from timeit import default_timer as timer
 
 import pickle
 import numpy as np
@@ -27,24 +27,24 @@ class XGBoostOptimiser(Optimiser):
 
     def train(self):
         self.config.logger.info("XGBoostOptimiser::train")
-        start = timeit.time
+        start = timer()
         inputs, exp_outputs = self.get_train_apply_data_("train")
-        end = timeit.time
+        end = timer()
         log_time(start, end, "data loading")
         print("Downsampling: ", self.config.downsample)
         print("inputs size: ", inputs.shape)
-        #start = timeit.time
+        #start = timer()
         #self.model.fit(inputs, exp_outputs)
-        #end = timeit.time
+        #end = timer()
         #log_time(start, end, "actual train")
         if self.config.plot_train:
-            start = timeit.time
+            start = timer()
             self.plot_train_(inputs, exp_outputs)
-            end = timeit.time
+            end = timer()
             log_time(start, end, "train plot")
-        start = timeit.time
+        start = timer()
         self.save_model_(self.model)
-        end = timeit.time
+        end = timer()
         log_time(start, end, "save model")
 
     def apply(self):
