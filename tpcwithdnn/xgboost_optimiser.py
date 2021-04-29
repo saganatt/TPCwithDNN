@@ -1,4 +1,6 @@
 # pylint: disable=missing-module-docstring, missing-function-docstring, missing-class-docstring
+import timeit
+
 import pickle
 import numpy as np
 import matplotlib.pyplot as plt
@@ -11,6 +13,7 @@ from root_numpy import fill_hist # pylint: disable=import-error
 from ROOT import TFile # pylint: disable=import-error, no-name-in-module
 
 import tpcwithdnn.plot_utils as plot_utils
+from tpcwithdnn.logger import log_time
 from tpcwithdnn.optimiser import Optimiser
 from tpcwithdnn.data_loader import load_train_apply_idc
 
@@ -24,10 +27,25 @@ class XGBoostOptimiser(Optimiser):
 
     def train(self):
         self.config.logger.info("XGBoostOptimiser::train")
+        start = timeit.time
         inputs, exp_outputs = self.get_train_apply_data_("train")
-        self.model.fit(inputs, exp_outputs)
-        self.plot_train_(inputs, exp_outputs, 10)
+        end = timeit.time
+        log_time(start, end, "data loading")
+        print("Downsampling: ", self.config.downsample)
+        print("inputs size: ", inputs.shape)
+        #start = timeit.time
+        #self.model.fit(inputs, exp_outputs)
+        #end = timeit.time
+        #log_time(start, end, "actual train")
+        if self.config.plot_train:
+            start = timeit.time
+            self.plot_train_(inputs, exp_outputs)
+            end = timeit.time
+            log_time(start, end, "train plot")
+        start = timeit.time
         self.save_model_(self.model)
+        end = timeit.time
+        log_time(start, end, "save model")
 
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
@@ -61,7 +79,8 @@ class XGBoostOptimiser(Optimiser):
     def get_train_apply_data_(self, partition):
         inputs = []
         exp_outputs = []
-        for indexev in self.config.partition[partition]:
+        for ind, indexev in enumerate(self.config.partition[partition]):
+            print("Event ", ind, " ", indexev)
             inputs_single, exp_outputs_single = load_train_apply_idc(self.config.dirinput_train,
                                                        indexev, self.config.input_z_range,
                                                        self.config.output_z_range,
@@ -101,23 +120,25 @@ class XGBoostOptimiser(Optimiser):
 
         myfile.Close()
 
-    def plot_train_(self, x_data, y_data, npoints):
+    def plot_train_(self, x_data, y_data):
         plt.figure()
         #plt.yscale("log")
         x_train, x_val, y_train, y_val = train_test_split(x_data, y_data, test_size=0.2)
         train_errors, val_errors = [], []
         high = len(x_train)
         low = 100
-        step_ = int((high - low) / npoints)
-        arrayvalues = np.arange(start=low, stop=high, step=step_)
-        for m in arrayvalues:
-            self.model.fit(x_train[:m], y_train[:m])
-            y_train_predict = self.model.predict(x_train[:m])
+        step = int((high - low) / self.config.train_plot_npoints)
+        checkpoints = np.arange(start=low, stop=high, step=step)
+        print("Checkpoints: ", self.config.train_plot_npoints, " step: ", step, " values: ", checkpoints)
+        for ind, checkpoint in enumerate(checkpoints):
+            print("Fit ", ind, " on ", checkpoint, " points")
+            self.model.fit(x_train[:checkpoint], y_train[:checkpoint])
+            y_train_predict = self.model.predict(x_train[:checkpoint])
             y_val_predict = self.model.predict(x_val)
-            train_errors.append(mean_squared_error(y_train_predict, y_train[:m]))
+            train_errors.append(mean_squared_error(y_train_predict, y_train[:checkpoint]))
             val_errors.append(mean_squared_error(y_val_predict, y_val))
-        plt.plot(arrayvalues, np.sqrt(train_errors), ".", label="train")
-        plt.plot(arrayvalues, np.sqrt(val_errors), ".", label="validation")
+        plt.plot(checkpoints, np.sqrt(train_errors), ".", label="train")
+        plt.plot(checkpoints, np.sqrt(val_errors), ".", label="validation")
         plt.ylim([0, np.amax(np.sqrt(val_errors)) * 2])
         plt.title("Learning curve BDT")
         plt.xlabel("Training set size")

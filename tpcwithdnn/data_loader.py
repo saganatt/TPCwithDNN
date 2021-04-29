@@ -140,7 +140,6 @@ def downsample_data(data_size, downsample_frac):
     return chosen
 
 
-# pylint: disable=too-many-locals
 def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
                       opt_pred, downsample, downsample_frac):
     [vec_r_pos, vec_rphi_pos, vec_z_pos,
@@ -158,35 +157,31 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
         chosen_points = downsample_data(len(vec_sel_in_z), downsample_frac)
         vec_sel_in_z = vec_sel_in_z & chosen_points
 
-    vec_r_pos = vec_r_pos[vec_sel_in_z]
-    vec_rphi_pos = vec_rphi_pos[vec_sel_in_z]
-    vec_z_pos = vec_z_pos[vec_sel_in_z]
+    vec_one_idc_fluc, num_zero_idc_fluc = filter_idc_data( # pylint: disable=unbalanced-tuple-unpacking
+              (vec_random_one_idc_a - vec_mean_one_idc_a,
+               num_random_zero_idc_a - num_mean_zero_idc_a),
+              (vec_random_one_idc_c - vec_mean_one_idc_c,
+               num_random_zero_idc_c - num_mean_zero_idc_c), input_z_range)
 
-    data_a = (vec_random_one_idc_a - vec_mean_one_idc_a,
-              num_random_zero_idc_a - num_mean_zero_idc_a)
-    data_c = (vec_random_one_idc_c - vec_mean_one_idc_c,
-              num_random_zero_idc_c - num_mean_zero_idc_c)
-    vec_one_idc_fluc, num_zero_idc_fluc = filter_idc_data(data_a, data_c, input_z_range) # pylint: disable=unbalanced-tuple-unpacking
-
-    mat_mean_corr = (vec_mean_corr_r, vec_mean_corr_rphi, vec_mean_corr_z)
-    mat_random_corr = (vec_random_corr_r, vec_random_corr_rphi, vec_random_corr_z)
+    mat_fluc_corr = (vec_random_corr_r - vec_mean_corr_r,
+                     vec_random_corr_rphi - vec_mean_corr_rphi,
+                     vec_random_corr_z - vec_mean_corr_z)
     _, mat_der_ref_mean_corr = load_data_derivatives_ref_mean_idc(dirinput, vec_sel_in_z)
 
-    vec_mean_corr = []
-    vec_random_corr = []
+    vec_exp_corr_fluc = []
     vec_der_ref_mean_corr = []
-    for ind, (vec_mean, vec_random, vec_der_ref_mean) in \
-        enumerate(zip(mat_mean_corr, mat_random_corr, mat_der_ref_mean_corr)):
+    for ind, (vec_fluc, vec_der_ref_mean) in enumerate(zip(mat_fluc_corr, mat_der_ref_mean_corr)):
         if opt_pred[ind] == 1:
-            vec_mean_corr = np.hstack((vec_mean_corr, vec_mean))
-            vec_random_corr = np.hstack((vec_random_corr, vec_random))
+            vec_exp_corr_fluc = np.hstack((vec_exp_corr_fluc, vec_fluc))
             vec_der_ref_mean_corr = np.hstack((vec_der_ref_mean_corr, vec_der_ref_mean))
 
-    vec_exp_corr_fluc = (vec_random_corr - vec_mean_corr)[vec_sel_out_z]
-
-    inputs = np.array([[r_pos, rphi_pos, z_pos, num_der, *vec_one_idc_fluc, *num_zero_idc_fluc]
-                        for (r_pos, rphi_pos, z_pos, num_der)
-                        in zip(vec_r_pos, vec_rphi_pos, vec_z_pos, vec_der_ref_mean_corr)])
+    inputs = np.zeros((vec_r_pos.size, 4 + vec_one_idc_fluc.size + num_zero_idc_fluc.size))
+    for ind, pos in enumerate((vec_r_pos, vec_rphi_pos, vec_z_pos)):
+        inputs[:, ind] = pos[vec_sel_in_z]
+    inputs[:, 3] = vec_der_ref_mean_corr
+    inputs[:, 3:3+num_zero_idc_fluc.size] = num_zero_idc_fluc
+    inputs[:, -vec_one_idc_fluc.size:] = vec_one_idc_fluc
+    vec_exp_corr_fluc = vec_exp_corr_fluc[vec_sel_out_z]
 
     return inputs, vec_exp_corr_fluc
 
@@ -237,7 +232,7 @@ def load_train_apply_idc(dirinput, event_index, input_z_range, output_z_range,
                          opt_pred, downsample, downsample_frac):
 
     inputs, exp_outputs = load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
-                                           opt_pred, downsample, downsample_frac)
+                                            opt_pred, downsample, downsample_frac)
 
     dim_output = sum(opt_pred)
     if dim_output > 1:

@@ -4,7 +4,7 @@ main script for doing tpc calibration with dnn
 # pylint: disable=fixme
 import sys
 import os
-from timeit import default_timer as timer
+import timeit
 
 # Needs to be set before any tensorflow import to suppress logging
 # pylint: disable=wrong-import-position
@@ -21,10 +21,13 @@ np.random.seed(SEED)
 import tensorflow as tf
 tf.random.set_seed(SEED)
 
+import matplotlib
+matplotlib.use("Agg")
+
 import yaml
 
 import tpcwithdnn.check_root # pylint: disable=unused-import
-from tpcwithdnn.logger import get_logger
+from tpcwithdnn.logger import get_logger, log_time
 from tpcwithdnn.common_settings import CommonSettings, XGBoostSettings, DNNSettings
 # from tpcwithdnn.data_validator import DataValidator
 from tpcwithdnn.idc_data_validator import IDCDataValidator
@@ -41,7 +44,8 @@ def setup_tf():
                 # for gpu in gpus:
                 #     tf.config.experimental.set_memory_growth(gpu, True)
             except RuntimeError as e:
-                print(e)
+                logger = get_logger()
+                logger.error(e)
 
 def init_models(config_parameters):
     models = []
@@ -71,25 +75,18 @@ def get_events_counts(train_events, test_events, apply_events):
         raise ValueError("Different number of ranges specified for train/test/apply")
     return zip(train_events, test_events, apply_events)
 
-def print_time(start, end, comment):
-    logger = get_logger()
-    elapsed_time = start - end
-    time_min = int(elapsed_time // 60)
-    time_sec = int(elapsed_time - time_min)
-    logger.info("Elapsed time %s: %dm %ds", comment, time_min, time_sec)
-
 def run_model_and_val(model, dataval, default, config_parameters):
     dataval.set_model(model)
     if default["dotrain"] is True:
-        start = timer()
+        start = timeit.time
         model.train()
-        end = timer()
-        print_time(start, end, "train")
+        end = timeit.time
+        log_time(start, end, "train")
     if default["doapply"] is True:
-        start = timer()
+        start = timeit.time
         model.apply()
-        end = timer()
-        print_time(start, end, "apply")
+        end = timeit.time
+        log_time(start, end, "apply")
     if default["doplot"] is True:
         model.plot()
     if default["dogrid"] is True:
@@ -119,7 +116,7 @@ def main():
 
     if len(sys.argv) == 2:
         default_file_name = sys.argv[1]
-        print("Using user specified steering options file: %s" % default_file_name)
+        logger.info("Using user specified steering options file: %s", default_file_name)
     else:
         default_file_name = "default.yml"
 
@@ -164,8 +161,8 @@ def main():
         for (train_events, test_events, apply_events) in model_events_counts:
             total_events = train_events + test_events + apply_events
             if total_events > max_available_events:
-                print("Too big number of events requested: %d available: %d" % \
-                      (total_events, max_available_events))
+                logger.warning("Too big number of events requested: %d available: %d",
+                               total_events, max_available_events)
                 continue
 
             all_events_counts.append((train_events, test_events, apply_events, total_events))
