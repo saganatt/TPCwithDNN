@@ -14,7 +14,7 @@ common:
   val_events: 1000 # Number of events for validation (random events for nd_validation)
   use_partition: random # Whether the validator uses only the events from given partition
                         # 'random' is for choosing events randomly
-  validate_model: false
+  validate_model: true
   pdf_map_var: flucSC
   pdf_map_mean_id: 0
   grid_phi: 90
@@ -31,10 +31,10 @@ common:
 
 xgboost:
   active: True
-  train_events: [100, 200, 400]
-  test_events: [0, 0, 0] # dummy for xgboost
-  apply_events: [100, 200, 200]
-  downsample: False
+  train_events: [200]
+  test_events: [0] # dummy for xgboost
+  apply_events: [400]
+  downsample: True
   downsample_fraction: 0.2
   plot_train: True
   train_plot_npoints: 10

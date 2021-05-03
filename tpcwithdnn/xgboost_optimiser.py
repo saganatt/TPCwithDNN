@@ -84,6 +84,7 @@ class XGBoostOptimiser(Optimiser):
         self.model.load_model(filename)
 
     def get_train_apply_data_(self, partition):
+        downsample = self.config.downsample # if partition == "train" else False
         inputs = []
         exp_outputs = []
         for indexev in self.config.partition[partition]:
