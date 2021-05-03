@@ -84,6 +84,7 @@ class XGBoostOptimiser(Optimiser):
         self.model.load_model(filename)
 
     def get_train_apply_data_(self, partition):
+        downsample = self.config.downsample # if partition == "train" else False
         inputs = []
         exp_outputs = []
         for indexev in self.config.partition[partition]:
@@ -91,8 +92,7 @@ class XGBoostOptimiser(Optimiser):
                                                        indexev, self.config.input_z_range,
                                                        self.config.output_z_range,
                                                        self.config.opt_predout,
-                                                       self.config.downsample,
-                                                       self.config.downsample_frac)
+                                                       downsample, self.config.downsample_frac)
             inputs.append(inputs_single)
             exp_outputs.append(exp_outputs_single)
         inputs = np.concatenate(inputs)
