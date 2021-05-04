@@ -13,7 +13,7 @@ from root_numpy import fill_hist # pylint: disable=import-error
 from ROOT import TFile # pylint: disable=import-error, no-name-in-module
 
 import tpcwithdnn.plot_utils as plot_utils
-from tpcwithdnn.logger import log_time
+from tpcwithdnn.debug_utils import log_time
 from tpcwithdnn.optimiser import Optimiser
 from tpcwithdnn.data_loader import load_event_idc
 
@@ -27,10 +27,7 @@ class XGBoostOptimiser(Optimiser):
 
     def train(self):
         self.config.logger.info("XGBoostOptimiser::train")
-        start = timer()
         inputs, exp_outputs = self.get_train_apply_data_("train")
-        end = timer()
-        log_time(start, end, "data loading")
         start = timer()
         self.model.fit(inputs, exp_outputs)
         end = timer()
@@ -40,18 +37,12 @@ class XGBoostOptimiser(Optimiser):
             self.plot_train_(inputs, exp_outputs)
             end = timer()
             log_time(start, end, "train plot")
-        start = timer()
         self.save_model(self.model)
-        end = timer()
-        log_time(start, end, "save model")
 
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
         self.load_model()
-        start = timer()
         inputs, exp_outputs = self.get_train_apply_data_("apply")
-        end = timer()
-        log_time(start, end, "data loading")
         start = timer()
         pred_outputs = self.model.predict(inputs)
         end = timer()

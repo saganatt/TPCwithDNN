@@ -27,7 +27,8 @@ matplotlib.use("Agg")
 import yaml
 
 import tpcwithdnn.check_root # pylint: disable=unused-import
-from tpcwithdnn.logger import get_logger, log_time
+from tpcwithdnn.logger import get_logger
+from tpcwithdnn.debug_utils import log_time
 from tpcwithdnn.common_settings import CommonSettings, XGBoostSettings, DNNSettings
 # from tpcwithdnn.data_validator import DataValidator
 from tpcwithdnn.idc_data_validator import IDCDataValidator
