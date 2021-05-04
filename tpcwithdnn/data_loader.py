@@ -179,7 +179,8 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
         mat_to_vec(opt_pred, (mat_fluc_corr, mat_der_ref_mean_corr))
     vec_exp_corr_fluc = vec_exp_corr_fluc[vec_sel_out_z]
 
-    inputs = np.zeros((vec_der_ref_mean_corr.size, 4 + vec_one_idc_fluc.size + num_zero_idc_fluc.size))
+    inputs = np.zeros((vec_der_ref_mean_corr.size,
+                       4 + vec_one_idc_fluc.size + num_zero_idc_fluc.size))
     for ind, pos in enumerate((vec_r_pos, vec_rphi_pos, vec_z_pos)):
         inputs[:, ind] = pos[vec_sel_in_z]
     inputs[:, 3] = vec_der_ref_mean_corr
