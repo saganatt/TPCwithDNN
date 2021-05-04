@@ -6,6 +6,13 @@ import psutil
 
 from tpcwithdnn.logger import get_logger
 
+def log_time(start, end, comment):
+    logger = get_logger()
+    elapsed_time = end - start
+    time_min = int(elapsed_time // 60)
+    time_sec = int(elapsed_time - time_min)
+    logger.info("Elapsed time %s: %dm %ds", comment, time_min, time_sec)
+
 def get_memory_usage(obj):
     return sys.getsizeof(obj)
 
@@ -18,7 +25,7 @@ def format_memory(size):
         return size // (1024**3), 'G'
     return size, ''
 
-def print_total_memory_usage():
+def log_total_memory_usage():
     logger = get_logger()
     size, mult = format_memory(psutil.virtual_memory().available)
     logger.info("Free RAM: %d %sB", size, mult)

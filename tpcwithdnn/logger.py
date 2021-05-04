@@ -111,11 +111,3 @@ def get_logger():
     """
     configure_logger(False, None)
     return logging.getLogger("TPCDNN")
-
-
-def log_time(start, end, comment):
-    logger = get_logger()
-    elapsed_time = end - start
-    time_min = int(elapsed_time // 60)
-    time_sec = int(elapsed_time - time_min)
-    logger.info("Elapsed time %s: %dm %ds", comment, time_min, time_sec)
