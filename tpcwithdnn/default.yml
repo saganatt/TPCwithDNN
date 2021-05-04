@@ -1,8 +1,8 @@
-dotrain: true
+dotrain: false
 doapply: true
 doplot: true
 dogrid: false
-dobayes: false
+dobayes: true
 doprofile: false
 docreatevaldata: false
 docreatepdfmaps: false

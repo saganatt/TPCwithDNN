@@ -201,6 +201,7 @@ class XGBoostSettings:
         self.downsample_frac = data_param["downsample_fraction"]
         self.plot_train = data_param["plot_train"]
         self.train_plot_npoints = data_param["train_plot_npoints"]
+        self.apply_bayes = data_param["apply_bayes"]
 
         self.params = data_param["params"]
 

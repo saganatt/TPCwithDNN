@@ -8,7 +8,7 @@
 ###############################################################################
 
 
-VIRTUALENV_PATH=~/.virtualenvs/tpcwithdnn
+VIRTUALENV_PATH=~/.virtualenvs/tpcwithdnn_bayes
 PYTHON_BIN=/usr/bin/python3.6
 PYTHON_VERSION=3.6
 

@@ -14,6 +14,7 @@ import tpcwithdnn.plot_utils as plot_utils
 from tpcwithdnn.debug_utils import log_time, log_memory_usage, log_total_memory_usage
 from tpcwithdnn.optimiser import Optimiser
 from tpcwithdnn.data_loader import load_event_idc
+from tpcwithdnn.xgboost_bayesian_optimiser import XGBoostBayesianOptimiser
 
 class XGBoostOptimiser(Optimiser):
     name = "xgboost"
@@ -56,7 +57,20 @@ class XGBoostOptimiser(Optimiser):
         raise NotImplementedError("Search grid method not implemented yet")
 
     def bayes_optimise(self):
-        raise NotImplementedError("Bayes optimise method not implemented yet")
+        opt = XGBoostBayesianOptimiser()
+        start = timer()
+        opt.x_train, opt.y_train = self.get_data_("train")
+        end = timer()
+        log_time(start, end, "load bayes")
+        log_memory_usage(((opt.x_train, "Input bayes data"), (opt.y_train, "Output bayes data")))
+        self.config.logger.info("Memory usage after loading data")
+        log_total_memory_usage()
+        start = timer()
+        opt.optimise()
+        end = timer()
+        log_time(start, end, "bayes proper optimisation")
+        opt.save(self.config.dirmodel)
+        opt.plot(self.config.dirplots)
 
     def save_model(self, model):
         # Snapshot - can be used for further training
@@ -66,9 +80,12 @@ class XGBoostOptimiser(Optimiser):
 
     def load_model(self):
         # Loading a snapshot
-        filename = "%s/xgbmodel_%s_nEv%d.json" %\
-                (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        return pickle.load(open(filename, "rb"))
+        if self.config.apply_bayes:
+            filename = "%s/bayes_xgbmodel.json" % self.config.dirmodel
+        else:
+            filename = "%s/xgbmodel_%s_nEv%d.json" %\
+                    (self.config.dirmodel, self.config.suffix, self.config.train_events)
+        return pickle.load(open(filename, 'rb'))
 
     def get_data_(self, partition):
         downsample = self.config.downsample if partition == "train" else False
