@@ -159,7 +159,7 @@ class IDCDataValidator(DataValidator):
     def create_data(self):
         self.config.logger.info("DataValidator::create_data")
 
-        vec_z_pos = np.load("%s/Pos/vecZPos.npy" % dirinput)
+        vec_z_pos = np.load("%s/Pos/vecZPos.npy" % self.config.dirinput_val)
         vec_sel_z = (self.config.input_z_range[0] <= vec_z_pos) &\
                        (vec_z_pos < self.config.input_z_range[1])
         vec_der_ref_mean_sc, mat_der_ref_mean_corr = \
@@ -178,11 +178,9 @@ class IDCDataValidator(DataValidator):
                                                     "meanCorr" + dist_name])
         if self.config.validate_model:
             from tensorflow.keras.models import model_from_json # pylint: disable=import-outside-toplevel
-            json_file = open("%s/model_%s_nEv%d.json" % \
-                             (self.config.dirmodel, self.config.suffix,
-                              self.config.train_events), "r")
-            loaded_model_json = json_file.read()
-            json_file.close()
+            with open("%s/model_%s_nEv%d.json" % (self.config.dirmodel, self.config.suffix,
+                      self.config.train_events), "r") as json_file:
+                loaded_model_json = json_file.read()
             loaded_model = \
                 model_from_json(loaded_model_json, {'SymmetryPadding3d' : SymmetryPadding3d})
             loaded_model.load_weights("%s/model_%s_nEv%d.h5" % \
