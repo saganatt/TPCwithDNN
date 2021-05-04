@@ -47,7 +47,7 @@ class XGBoostOptimiser(Optimiser):
 
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
-        #self.load_model()
+        self.load_model()
         start = timer()
         inputs, exp_outputs = self.get_train_apply_data_("apply")
         end = timer()
@@ -67,21 +67,15 @@ class XGBoostOptimiser(Optimiser):
 
     def save_model(self, model):
         # Snapshot - can be used for further training
-        out_filename = "%s/xgbmodel_%s_nEv%d_snap.json" %\
-                (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        pickle.dump(model, open(out_filename, 'wb'), protocol=4)
         out_filename = "%s/xgbmodel_%s_nEv%d.json" %\
                 (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        model.save_model(out_filename)
+        pickle.dump(model, open(out_filename, 'wb'), protocol=4)
 
     def load_model(self):
         # Loading a snapshot
-        #filename = "%s/xgbmodel_%s_nEv%d_snap.json" %\
-        #        (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        #loaded_model = pickle.load(open(filename, 'rb'))
         filename = "%s/xgbmodel_%s_nEv%d.json" %\
                 (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        self.model.load_model(filename)
+        self.model = pickle.load(open(filename, 'rb'))
 
     def get_train_apply_data_(self, partition):
         downsample = self.config.downsample # if partition == "train" else False
