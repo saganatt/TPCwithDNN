@@ -130,6 +130,8 @@ def draw_input(dirplots, draw_idc):
         set_margins(c1)
         c1.SaveAs("%s/fluc_1D_IDC.png" % dirplots)
 
+        t.SetMarkerStyle(kDot)
+
         t.Draw("fluc0DIDC:flucCorrR", "r<120 && z<120", "")
         setup_frame("0D IDC fluctuations", "d#it{r} - <d#it{r}> (cm)")
         set_margins(c1)
@@ -144,6 +146,8 @@ def draw_input(dirplots, draw_idc):
         setup_frame("0D IDC fluctuations", "d#it{z} - <d#it{z}> (cm)")
         set_margins(c1)
         c1.SaveAs("%s/flucCorrZ_fluc0DIDC.png" % dirplots)
+
+        t.SetMarkerStyle(kFullSquare)
 
 
 def main():
