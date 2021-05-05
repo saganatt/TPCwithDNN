@@ -229,7 +229,7 @@ def load_data(input_data, event_index, input_z_range, output_z_range):
             vec_fluctuation_dist_rphi, vec_fluctuation_dist_z]
 
 
-def load_train_apply_idc(dirinput, event_index, input_z_range, output_z_range,
+def load_event_idc(dirinput, event_index, input_z_range, output_z_range,
                          opt_pred, downsample, downsample_frac):
 
     inputs, exp_outputs = load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,

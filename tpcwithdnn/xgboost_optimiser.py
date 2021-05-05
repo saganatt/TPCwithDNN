@@ -6,16 +6,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from xgboost import XGBRFRegressor
 
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 
 from root_numpy import fill_hist # pylint: disable=import-error
 from ROOT import TFile # pylint: disable=import-error, no-name-in-module
 
 import tpcwithdnn.plot_utils as plot_utils
-from tpcwithdnn.debug_utils import log_time
+from tpcwithdnn.debug_utils import log_time, log_memory_usage, log_total_memory_usage
 from tpcwithdnn.optimiser import Optimiser
-from tpcwithdnn.data_loader import load_train_apply_idc
+from tpcwithdnn.data_loader import load_event_idc
 
 class XGBoostOptimiser(Optimiser):
     name = "xgboost"
@@ -27,22 +26,32 @@ class XGBoostOptimiser(Optimiser):
 
     def train(self):
         self.config.logger.info("XGBoostOptimiser::train")
-        inputs, exp_outputs = self.get_train_apply_data_("train")
+        inputs, exp_outputs = self.get_data_("train")
+        log_memory_usage(((inputs, "Input train data"), (exp_outputs, "Output train data")))
+        self.config.logger.info("Memory usage after loading data")
+        log_total_memory_usage()
+        if self.config.plot_train:
+            inputs_val, outputs_val = self.get_data_("validation")
+            log_memory_usage(((inputs_val, "Input val data"), (outputs_val, "Output val data")))
+            self.config.logger.info("Memory usage after loading val data")
+            log_total_memory_usage()
+            start = timer()
+            self.plot_train_(inputs, exp_outputs, inputs_val, outputs_val)
+            end = timer()
+            log_time(start, end, "train plot")
         start = timer()
         self.model.fit(inputs, exp_outputs)
         end = timer()
         log_time(start, end, "actual train")
-        if self.config.plot_train:
-            start = timer()
-            self.plot_train_(inputs, exp_outputs)
-            end = timer()
-            log_time(start, end, "train plot")
         self.save_model_(self.model)
 
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
         self.load_model_()
-        inputs, exp_outputs = self.get_train_apply_data_("apply")
+        inputs, exp_outputs = self.get_data_("apply")
+        log_memory_usage(((inputs, "Input apply data"), (exp_outputs, "Output apply data")))
+        self.config.logger.info("Memory usage after loading apply data")
+        log_total_memory_usage()
         start = timer()
         pred_outputs = self.model.predict(inputs)
         end = timer()
@@ -68,16 +77,17 @@ class XGBoostOptimiser(Optimiser):
                 (self.config.dirmodel, self.config.suffix, self.config.train_events)
         self.model = pickle.load(open(filename, 'rb'))
 
-    def get_train_apply_data_(self, partition):
+    def get_data_(self, partition):
         downsample = self.config.downsample # if partition == "train" else False
         inputs = []
         exp_outputs = []
         for indexev in self.config.partition[partition]:
-            inputs_single, exp_outputs_single = load_train_apply_idc(self.config.dirinput_train,
-                                                       indexev, self.config.input_z_range,
-                                                       self.config.output_z_range,
-                                                       self.config.opt_predout,
-                                                       downsample, self.config.downsample_frac)
+            inputs_single, exp_outputs_single = load_event_idc(self.config.dirinput_train,
+                                                               indexev, self.config.input_z_range,
+                                                               self.config.output_z_range,
+                                                               self.config.opt_predout,
+                                                               downsample,
+                                                               self.config.downsample_frac)
             inputs.append(inputs_single)
             exp_outputs.append(exp_outputs_single)
         inputs = np.concatenate(inputs)
@@ -111,21 +121,25 @@ class XGBoostOptimiser(Optimiser):
 
         myfile.Close()
 
-    def plot_train_(self, x_data, y_data):
+    def plot_train_(self, x_train, y_train, x_val, y_val):
         plt.figure()
         #plt.yscale("log")
-        x_train, x_val, y_train, y_val = train_test_split(x_data, y_data, test_size=0.2)
         train_errors, val_errors = [], []
-        high = len(x_train)
-        low = 0
-        step = int((high - low) / self.config.train_plot_npoints)
-        checkpoints = np.arange(start=step, stop=high+1, step=step)
-        for checkpoint in checkpoints:
+        data_size = len(x_train)
+        size_per_event = int(data_size / self.config.train_events)
+        step = int(data_size / self.config.train_plot_npoints)
+        checkpoints = np.arange(start=size_per_event, stop=data_size, step=step)
+        for ind, checkpoint in enumerate(checkpoints):
             self.model.fit(x_train[:checkpoint], y_train[:checkpoint])
             y_train_predict = self.model.predict(x_train[:checkpoint])
             y_val_predict = self.model.predict(x_val)
             train_errors.append(mean_squared_error(y_train_predict, y_train[:checkpoint]))
             val_errors.append(mean_squared_error(y_val_predict, y_val))
+            if ind in (0, self.config.train_plot_npoints // 2, self.config.train_plot_npoints - 1):
+                self.plot_results_(y_train[:checkpoint], y_train_predict, "train-%d" % ind)
+                self.plot_results_(y_val, y_val_predict, "val-%d" % ind)
+        self.config.logger.info("Memory usage during plot train")
+        log_total_memory_usage()
         plt.plot(checkpoints, np.sqrt(train_errors), ".", label="train")
         plt.plot(checkpoints, np.sqrt(val_errors), ".", label="validation")
         plt.ylim([0, np.amax(np.sqrt(val_errors)) * 2])
@@ -135,3 +149,13 @@ class XGBoostOptimiser(Optimiser):
         plt.legend(loc="lower left")
         plt.savefig("%s/learning_plot_%s_nEv%d.png" % (self.config.dirplots, self.config.suffix,
                                                        self.config.train_events))
+        plt.clf()
+
+    def plot_results_(self, exp_outputs, pred_outputs, infix):
+        plt.figure()
+        plt.plot(exp_outputs, pred_outputs, ".")
+        plt.xlabel("Expected output")
+        plt.ylabel("Predicted output")
+        plt.savefig("%s/num-exp-%s_%s_nEv%d.png" % (self.config.dirplots, infix, self.config.suffix,
+                                                   self.config.train_events))
+        plt.clf()

@@ -25,6 +25,12 @@ def format_memory(size):
         return size // (1024**3), 'G'
     return size, ''
 
+def log_memory_usage(objects):
+    logger = get_logger()
+    for obj, comment in objects:
+        size, mult = format_memory(get_memory_usage(obj))
+        logger.info("%s memory usage: %d %sB", comment, size, mult)
+
 def log_total_memory_usage():
     logger = get_logger()
     size, mult = format_memory(psutil.virtual_memory().available)
