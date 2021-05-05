@@ -28,7 +28,7 @@ import yaml
 
 import tpcwithdnn.check_root # pylint: disable=unused-import
 from tpcwithdnn.logger import get_logger
-from tpcwithdnn.debug_utils import log_time
+from tpcwithdnn.debug_utils import log_time, log_total_memory_usage
 from tpcwithdnn.common_settings import CommonSettings, XGBoostSettings, DNNSettings
 # from tpcwithdnn.data_validator import DataValidator
 from tpcwithdnn.idc_data_validator import IDCDataValidator
@@ -114,6 +114,9 @@ def main():
     """ The global main function """
     logger = get_logger()
     logger.info("Starting TPC ML...")
+
+    logger.info("Initial memory usage")
+    log_total_memory_usage()
 
     if len(sys.argv) == 2:
         default_file_name = sys.argv[1]
