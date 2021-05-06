@@ -170,37 +170,45 @@ class IDCDataValidator():
         else:
             loaded_model = None
 
-        for imean, mean_factor in zip(self.mean_ids, self.mean_factors):
-            tree_filename = "%s/treeInput_mean%.2f_%s.root" \
-                            % (self.config.diroutflattree, mean_factor, self.config.suffix_ds)
-            if self.config.validate_model:
-                tree_filename = "%s/%s/treeValidation_mean%.1f_nEv%d.root" \
-                                % (self.config.diroutflattree, self.config.suffix, mean_factor,
-                                   self.config.train_events)
+        #for imean, mean_factor in zip(self.mean_ids, self.mean_factors):
+        #tree_filename = "%s/treeInput_mean%.2f_%s.root" \
+        #                % (self.config.diroutflattree, mean_factor, self.config.suffix_ds)
+        #if self.config.validate_model:
+        #    tree_filename = "%s/%s/treeValidation_mean%.1f_nEv%d.root" \
+        #                    % (self.config.diroutflattree, self.config.suffix, mean_factor,
+        #                       self.config.train_events)
+        tree_filename = "%s/treeInput_%s.root" \
+                        % (self.config.diroutflattree, self.config.suffix_ds)
+        if self.config.validate_model:
+            tree_filename = "%s/%s/treeValidation_nEv%d.root" \
+                            % (self.config.diroutflattree, self.config.suffix,
+                               self.config.train_events)
 
-            if os.path.isfile(tree_filename):
-                os.remove(tree_filename)
+        if os.path.isfile(tree_filename):
+            os.remove(tree_filename)
 
-            counter = 0
-            if self.config.use_partition != 'random':
-                for ind_ev in self.config.part_inds:
-                    if ind_ev[1] != imean:
-                        continue
-                    irnd = ind_ev[0]
-                    self.config.logger.info("processing event: %d [%d, %d]", counter, imean, irnd)
-                    self.create_data_for_event(imean, irnd, column_names, vec_der_ref_mean_sc,
-                                               mat_der_ref_mean_corr, loaded_model, tree_filename)
-                    counter = counter + 1
-                    if counter == self.config.val_events:
-                        break
-            else:
-                for irnd in range(self.config.maxrandomfiles):
-                    self.config.logger.info("processing event: %d [%d, %d]", counter, imean, irnd)
-                    self.create_data_for_event(imean, irnd, column_names, vec_der_ref_mean_sc,
-                                               mat_der_ref_mean_corr, loaded_model, tree_filename)
-                    counter = counter + 1
-                    if counter == self.config.val_events:
-                        break
+        counter = 0
+        if self.config.use_partition != 'random':
+            for ind_ev in self.config.part_inds:
+                #if ind_ev[1] != imean:
+                #    continue
+                irnd = ind_ev[0]
+                imean = ind_ev[1]
+                self.config.logger.info("processing event: %d [%d, %d]", counter, imean, irnd)
+                self.create_data_for_event(imean, irnd, column_names, vec_der_ref_mean_sc,
+                                           mat_der_ref_mean_corr, loaded_model, tree_filename)
+                counter = counter + 1
+                if counter == self.config.val_events:
+                    break
+        else:
+            imean = 0
+            for irnd in range(self.config.maxrandomfiles):
+                self.config.logger.info("processing event: %d [%d, %d]", counter, imean, irnd)
+                self.create_data_for_event(imean, irnd, column_names, vec_der_ref_mean_sc,
+                                           mat_der_ref_mean_corr, loaded_model, tree_filename)
+                counter = counter + 1
+                if counter == self.config.val_events:
+                    break
 
             self.config.logger.info("Tree written in %s", tree_filename)
 
