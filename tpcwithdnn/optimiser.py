@@ -10,13 +10,13 @@ class Optimiser:
     def train(self):
         raise NotImplementedError("Calling empty train method in abstract base optimiser class")
 
-    def save_model_(self, model):
+    def save_model(self, model):
         raise NotImplementedError("Calling empty save model method in abstract optimiser class")
 
     def apply(self):
         raise NotImplementedError("Calling empty apply method in abstract base optimiser class")
 
-    def load_model_(self):
+    def load_model(self):
         raise NotImplementedError("Calling empty load model method in abstract optimiser class")
 
     def plot(self):

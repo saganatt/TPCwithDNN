@@ -22,10 +22,10 @@ class XGBoostOptimiser(Optimiser):
     def __init__(self, config):
         super().__init__(config)
         self.config.logger.info("XGBoostOptimiser::Init")
-        self.model = XGBRFRegressor(verbosity=1, **(self.config.params))
 
     def train(self):
         self.config.logger.info("XGBoostOptimiser::train")
+        model = XGBRFRegressor(verbosity=1, **(self.config.params))
         start = timer()
         inputs, exp_outputs = self.get_data_("train")
         end = timer()
@@ -39,18 +39,18 @@ class XGBoostOptimiser(Optimiser):
             self.config.logger.info("Memory usage after loading val data")
             log_total_memory_usage()
             start = timer()
-            self.plot_train_(inputs, exp_outputs, inputs_val, outputs_val)
+            self.plot_train_(model, inputs, exp_outputs, inputs_val, outputs_val)
             end = timer()
             log_time(start, end, "train plot")
         start = timer()
-        self.model.fit(inputs, exp_outputs)
+        model.fit(inputs, exp_outputs)
         end = timer()
         log_time(start, end, "actual train")
-        self.save_model(self.model)
+        self.save_model(model)
 
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
-        self.load_model()
+        loaded_model = load_model()
         start = timer()
         inputs, exp_outputs = self.get_data_("apply")
         end = timer()
@@ -59,7 +59,7 @@ class XGBoostOptimiser(Optimiser):
         self.config.logger.info("Memory usage after loading apply data")
         log_total_memory_usage()
         start = timer()
-        pred_outputs = self.model.predict(inputs)
+        pred_outputs = loaded_model.predict(inputs)
         end = timer()
         log_time(start, end, "actual predict")
         start = timer()
@@ -81,7 +81,7 @@ class XGBoostOptimiser(Optimiser):
         # Loading a snapshot
         filename = "%s/xgbmodel_%s_nEv%d.json" %\
                 (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        self.model = pickle.load(open(filename, 'rb'))
+        return pickle.load(open(filename, 'rb'))
 
     def get_data_(self, partition):
         downsample = self.config.downsample if partition == "train" else False
@@ -133,7 +133,7 @@ class XGBoostOptimiser(Optimiser):
 
         myfile.Close()
 
-    def plot_train_(self, x_train, y_train, x_val, y_val):
+    def plot_train_(self, model, x_train, y_train, x_val, y_val):
         plt.figure()
         #plt.yscale("log")
         train_errors, val_errors = [], []
@@ -142,9 +142,9 @@ class XGBoostOptimiser(Optimiser):
         step = int(data_size / self.config.train_plot_npoints)
         checkpoints = np.arange(start=size_per_event, stop=data_size, step=step)
         for ind, checkpoint in enumerate(checkpoints):
-            self.model.fit(x_train[:checkpoint], y_train[:checkpoint])
-            y_train_predict = self.model.predict(x_train[:checkpoint])
-            y_val_predict = self.model.predict(x_val)
+            model.fit(x_train[:checkpoint], y_train[:checkpoint])
+            y_train_predict = model.predict(x_train[:checkpoint])
+            y_val_predict = model.predict(x_val)
             train_errors.append(mean_squared_error(y_train_predict, y_train[:checkpoint]))
             val_errors.append(mean_squared_error(y_val_predict, y_val))
             if ind in (0, self.config.train_plot_npoints // 2, self.config.train_plot_npoints - 1):
