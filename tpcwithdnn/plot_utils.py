@@ -41,6 +41,11 @@ def fill_std_dev_apply_hist(h_deltas_vs_dist, hist_name, suffix, infix=""):
         h_std_dev.SetBinError(ibin+1, stddev_err)
     h_std_dev.Write()
 
+def fill_profile_apply_hist(h_deltas_vs_dist_all_events, profile_name, suffix):
+    prof_all_events = h_deltas_vs_dist_all_events.ProfileX()
+    prof_all_events.SetName("%s_all_events_%s" % (profile_name, suffix))
+    prof_all_events.Write()
+
 def fill_apply_tree_single_event(config, indexev, distortion_numeric_flat_m,
                                  distortion_predict_flat_m, deltas_flat_a, deltas_flat_m):
     h_suffix = "Ev%d_Mean%d_%s" % (indexev[0], indexev[1], config.suffix)
@@ -60,6 +65,16 @@ def fill_apply_tree_single_event(config, indexev, distortion_numeric_flat_m,
     h_deltas_vs_dist.Write()
     prof.Write()
     fill_std_dev_apply_hist(h_deltas_vs_dist, config.h_std_dev_name, h_suffix)
+
+def fill_apply_tree(h_dist_all_events, h_deltas_all_events, h_deltas_vs_dist_all_events,
+                    distortion_numeric_flat_m, distortion_predict_flat_m,
+                    deltas_flat_a, deltas_flat_m):
+    fill_hist(h_dist_all_events, np.concatenate((distortion_numeric_flat_m, \
+                                                 distortion_predict_flat_m), axis=1))
+    fill_hist(h_deltas_all_events, deltas_flat_a)
+    fill_hist(h_deltas_vs_dist_all_events,
+              np.concatenate((distortion_numeric_flat_m, deltas_flat_m), axis=1))
+
 
 def get_apply_results_single_event(pred_outputs, exp_outputs):
     distortion_predict_group = pred_outputs
