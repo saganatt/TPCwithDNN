@@ -11,8 +11,8 @@ common:
   apply_bias: false
   diroutflattree: trees_idc
   dirouthistograms: histograms_idc
-  val_events: 1000 # Number of events for validation (random events for nd_validation)
-  use_partition: random # Whether the validator uses only the events from given partition
+  val_events: 400 # Number of events for validation (random events for nd_validation)
+  use_partition: apply # Whether the validator uses only the events from given partition
                         # 'random' is for choosing events randomly
   validate_model: true
   pdf_map_var: flucSC
