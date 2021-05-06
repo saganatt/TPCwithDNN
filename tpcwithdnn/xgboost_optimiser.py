@@ -8,7 +8,6 @@ from xgboost import XGBRFRegressor
 
 from sklearn.metrics import mean_squared_error
 
-from root_numpy import fill_hist # pylint: disable=import-error
 from ROOT import TFile # pylint: disable=import-error, no-name-in-module
 
 import tpcwithdnn.plot_utils as plot_utils
@@ -50,7 +49,7 @@ class XGBoostOptimiser(Optimiser):
 
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
-        loaded_model = load_model()
+        loaded_model = self.load_model()
         start = timer()
         inputs, exp_outputs = self.get_data_("apply")
         end = timer()
@@ -114,20 +113,15 @@ class XGBoostOptimiser(Optimiser):
                 plot_utils.create_apply_histos(self.config, self.config.suffix, infix="all_events_")
         distortion_numeric_flat_m, distortion_predict_flat_m, deltas_flat_a, deltas_flat_m =\
             plot_utils.get_apply_results_single_event(pred_outputs, exp_outputs)
+        plot_utils.fill_apply_tree(h_dist_all_events, h_deltas_all_events,
+                                   h_deltas_vs_dist_all_events,
+                                   distortion_numeric_flat_m, distortion_predict_flat_m,
+                                   deltas_flat_a, deltas_flat_m)
 
-        fill_hist(h_dist_all_events, np.concatenate((distortion_numeric_flat_m, \
-                                                     distortion_predict_flat_m), axis=1))
-        fill_hist(h_deltas_all_events, deltas_flat_a)
-        fill_hist(h_deltas_vs_dist_all_events,
-                  np.concatenate((distortion_numeric_flat_m, deltas_flat_m), axis=1))
-
-        h_dist_all_events.Write()
-        h_deltas_all_events.Write()
-        h_deltas_vs_dist_all_events.Write()
-        prof_all_events = h_deltas_vs_dist_all_events.ProfileX()
-        prof_all_events.SetName("%s_all_events_%s" % (self.config.profile_name,
-                                                      self.config.suffix))
-        prof_all_events.Write()
+        for hist in (h_dist_all_events, h_deltas_all_events, h_deltas_vs_dist_all_events):
+            hist.Write()
+        plot_utils.fill_profile_apply_hist(h_deltas_vs_dist_all_events, self.config.profile_name,
+                                           self.config.suffix)
         plot_utils.fill_std_dev_apply_hist(h_deltas_vs_dist_all_events, self.config.h_std_dev_name,
                                            self.config.suffix, "all_events_")
 
