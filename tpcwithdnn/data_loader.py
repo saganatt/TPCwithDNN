@@ -163,6 +163,7 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
     if downsample:
         chosen_points = downsample_data(len(vec_sel_in_z), downsample_frac)
         vec_sel_in_z = vec_sel_in_z & chosen_points
+        vec_sel_out_z = vec_sel_out_z & chosen_points
 
     vec_one_idc_fluc, num_zero_idc_fluc = filter_idc_data( # pylint: disable=unbalanced-tuple-unpacking
               (vec_random_one_idc_a - vec_mean_one_idc_a,
