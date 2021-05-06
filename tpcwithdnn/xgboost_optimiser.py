@@ -84,10 +84,10 @@ class XGBoostOptimiser(Optimiser):
         self.model = pickle.load(open(filename, 'rb'))
 
     def get_data_(self, partition):
-        downsample = self.config.downsample # if partition == "train" else False
+        downsample = self.config.downsample if partition == "train" else False
         inputs = []
         exp_outputs = []
-        for indexev in self.config.partition[partition]:
+        for ind, indexev in enumerate(self.config.partition[partition]):
             inputs_single, exp_outputs_single = load_event_idc(self.config.dirinput_train,
                                                                indexev, self.config.input_z_range,
                                                                self.config.output_z_range,
@@ -96,6 +96,12 @@ class XGBoostOptimiser(Optimiser):
                                                                self.config.downsample_frac)
             inputs.append(inputs_single)
             exp_outputs.append(exp_outputs_single)
+            log_memory_usage(((inputs, "%d input data" % ind),
+                              (exp_outputs, "%d output data" % ind)))
+            log_memory_usage(((inputs_single, "%d single input data" % ind),
+                              (exp_outputs_single, "%d single output data" % ind)))
+            self.config.logger.info("Memory usage after loading data %d" % ind)
+            log_total_memory_usage()
         inputs = np.concatenate(inputs)
         exp_outputs = np.concatenate(exp_outputs)
         return inputs, exp_outputs
