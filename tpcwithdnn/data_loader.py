@@ -9,15 +9,17 @@ SCALES_CONST = [0, 3, -3, 6, -6]
 SCALES_LINEAR = [0, 3, -3]
 SCALES_PARABOLIC = [0, 3, -3]
 
+def get_mean_desc(mean_id):
+    s_const = SCALES_CONST[mean_id // 9]
+    s_lin = SCALES_LINEAR[(mean_id % 9) // 3]
+    s_para = SCALES_PARABOLIC[mean_id % 3]
+    return "%d-Const_%d_Lin_%d_Para_%d" % (mean_id, s_const, s_lin, s_para)
+
 def load_data_original_idc(dirinput, event_index):
     """
     Load IDC data.
     """
-    s_const = SCALES_CONST[event_index[1] // 9]
-    s_lin = SCALES_LINEAR[(event_index[1] % 9) // 3]
-    s_para = SCALES_PARABOLIC[event_index[1] % 3]
-    mean_prefix = "%d-Const_%d_Lin_%d_Para_%d" % (event_index[1], s_const, s_lin, s_para)
-
+    mean_prefix = get_mean_desc(event_index[1])
     files = ["%s/Pos/vecRPos.npy" % dirinput,
              "%s/Pos/vecPhiPos.npy" % dirinput,
              "%s/Pos/vecZPos.npy" % dirinput,

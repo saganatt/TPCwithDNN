@@ -244,7 +244,7 @@ class DataValidator:
         Create nd histograms for given mean id
         mean_id: index of mean map. Only 0 (factor=1.0), 9 (factor=1.1) and 18 (factor=0.9) working.
         """
-        for var in self.config.get_pdf_map_variables_list():
+        for var in self.get_pdf_map_variables_list():
             self.create_nd_histogram(var, mean_id)
 
 
@@ -328,7 +328,7 @@ class DataValidator:
             df = read_root(input_file_name_0, columns="*Bin*")
             df['fsector'] = df['phiBinCenter'] / math.pi * 9
             df['meanMap'] = mean_factor
-            for var in self.config.get_pdf_map_variables_list():
+            for var in self.get_pdf_map_variables_list():
                 input_file_name = "%s/%s/pdfmap_%s_mean%.1f_nEv%d.root" \
                     % (self.config.diroutflattree, self.config.suffix, var, mean_factor,
                        self.config.train_events)
