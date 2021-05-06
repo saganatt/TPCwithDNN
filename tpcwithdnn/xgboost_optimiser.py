@@ -26,7 +26,10 @@ class XGBoostOptimiser(Optimiser):
 
     def train(self):
         self.config.logger.info("XGBoostOptimiser::train")
+        start = timer()
         inputs, exp_outputs = self.get_data_("train")
+        end = timer()
+        log_time(start, end, "load train")
         log_memory_usage(((inputs, "Input train data"), (exp_outputs, "Output train data")))
         self.config.logger.info("Memory usage after loading data")
         log_total_memory_usage()
@@ -48,7 +51,10 @@ class XGBoostOptimiser(Optimiser):
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
         self.load_model_()
+        start = timer()
         inputs, exp_outputs = self.get_data_("apply")
+        end = timer()
+        log_time(start, end, "load apply")
         log_memory_usage(((inputs, "Input apply data"), (exp_outputs, "Output apply data")))
         self.config.logger.info("Memory usage after loading apply data")
         log_total_memory_usage()
