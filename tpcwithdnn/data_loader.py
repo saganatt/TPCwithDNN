@@ -134,7 +134,7 @@ def downsample_data(data_size, downsample_frac):
     num_points = int(round(downsample_frac * data_size))
     for _ in range(num_points):
         sel_ind = random.randrange(0, data_size)
-        while not chosen[sel_ind]:
+        while chosen[sel_ind]:
             sel_ind = random.randrange(0, data_size)
         chosen[sel_ind] = True
     return chosen
