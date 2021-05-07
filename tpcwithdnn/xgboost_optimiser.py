@@ -70,17 +70,20 @@ class XGBoostOptimiser(Optimiser):
     def search_grid(self):
         raise NotImplementedError("Search grid method not implemented yet")
 
+    def bayes_optimise(self):
+        raise NotImplementedError("Bayes optimise method not implemented yet")
+
     def save_model(self, model):
         # Snapshot - can be used for further training
         out_filename = "%s/xgbmodel_%s_nEv%d.json" %\
                 (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        pickle.dump(model, open(out_filename, 'wb'), protocol=4)
+        pickle.dump(model, open(out_filename, "wb"), protocol=4)
 
     def load_model(self):
         # Loading a snapshot
         filename = "%s/xgbmodel_%s_nEv%d.json" %\
                 (self.config.dirmodel, self.config.suffix, self.config.train_events)
-        return pickle.load(open(filename, 'rb'))
+        return pickle.load(open(filename, "rb"))
 
     def get_data_(self, partition):
         downsample = self.config.downsample if partition == "train" else False
@@ -95,12 +98,6 @@ class XGBoostOptimiser(Optimiser):
                                                                self.config.downsample_frac)
             inputs.append(inputs_single)
             exp_outputs.append(exp_outputs_single)
-            log_memory_usage(((inputs, "%d input data" % ind),
-                              (exp_outputs, "%d output data" % ind)))
-            log_memory_usage(((inputs_single, "%d single input data" % ind),
-                              (exp_outputs_single, "%d single output data" % ind)))
-            self.config.logger.info("Memory usage after loading data %d" % ind)
-            log_total_memory_usage()
         inputs = np.concatenate(inputs)
         exp_outputs = np.concatenate(exp_outputs)
         return inputs, exp_outputs
@@ -129,7 +126,6 @@ class XGBoostOptimiser(Optimiser):
 
     def plot_train_(self, model, x_train, y_train, x_val, y_val):
         plt.figure()
-        #plt.yscale("log")
         train_errors, val_errors = [], []
         data_size = len(x_train)
         size_per_event = int(data_size / self.config.train_events)

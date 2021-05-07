@@ -84,6 +84,11 @@ def run_model_and_val(model, dataval, default, config_parameters):
         model.train()
         end = timer()
         log_time(start, end, "train")
+    if default["dobayes"] is True:
+        start = timer()
+        model.bayes_optimise()
+        end = timer()
+        log_time(start, end, "bayes")
     if default["doapply"] is True:
         start = timer()
         model.apply()
