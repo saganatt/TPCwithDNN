@@ -4,6 +4,7 @@ main script for doing tpc calibration with dnn
 # pylint: disable=fixme
 import sys
 import os
+import argparse
 from timeit import default_timer as timer
 
 # Needs to be set before any tensorflow import to suppress logging
@@ -118,16 +119,19 @@ def main():
     logger.info("Initial memory usage")
     log_total_memory_usage()
 
-    if len(sys.argv) == 2:
-        default_file_name = sys.argv[1]
-        logger.info("Using user specified steering options file: %s", default_file_name)
-    else:
-        default_file_name = "default.yml"
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-c", "--config", dest="config_file", default="config_model_parameters.yml",
+                        type=str, help="path to the *.yml configuration file")
+    parser.add_argument("-s", "--steer", dest="steer_file", default="default.yml",
+                        type=str, help="path to the *.yml steering file")
+    args = parser.parse_args()
 
-    with open(default_file_name, 'r') as default_data:
-        default = yaml.safe_load(default_data)
-    with open("config_model_parameters.yml", 'r') as parameters_data:
-        config_parameters = yaml.safe_load(parameters_data)
+    logger.info("Using configuration: %s steer file: %s" % (args.config_file, args.steer_file))
+
+    with open(args.steer_file, "r") as steer_data:
+        default = yaml.safe_load(steer_data)
+    with open(args.config_file, "r") as config_data:
+        config_parameters = yaml.safe_load(config_data)
 
     # FIXME: Do we need these commented lines anymore?
     #dirmodel = config_parameters["common"]["dirmodel"]
