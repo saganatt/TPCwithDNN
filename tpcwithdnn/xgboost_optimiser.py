@@ -8,7 +8,7 @@ from ROOT import TFile # pylint: disable=import-error, no-name-in-module
 
 import tpcwithdnn.plot_utils as plot_utils
 from tpcwithdnn.optimiser import Optimiser
-from tpcwithdnn.data_loader import load_train_apply_idc
+from tpcwithdnn.data_loader import load_event_idc
 
 class XGBoostOptimiser(Optimiser):
     name = "xgboost"
@@ -57,10 +57,10 @@ class XGBoostOptimiser(Optimiser):
         inputs = []
         exp_outputs = []
         for indexev in self.config.partition[partition]:
-            inputs_single, exp_outputs_single = load_train_apply_idc(self.config.dirinput_train,
-                                                       indexev, self.config.input_z_range,
-                                                       self.config.output_z_range,
-                                                       self.config.opt_predout)
+            inputs_single, exp_outputs_single = load_event_idc(self.config.dirinput_train,
+                                                               indexev, self.config.input_z_range,
+                                                               self.config.output_z_range,
+                                                               self.config.opt_predout)
             inputs.append(inputs_single)
             exp_outputs.append(exp_outputs_single)
         print("Different inputs: {} shape of first: {}"
