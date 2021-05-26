@@ -8,6 +8,7 @@ from tpcwithdnn.logger import get_logger
 SCALES_CONST = [0, 3, -3, 6, -6]
 SCALES_LINEAR = [0, 3, -3]
 SCALES_PARABOLIC = [0, 3, -3]
+NUM_FOURIER_COEFS = 20
 
 def get_mean_desc(mean_id):
     s_const = SCALES_CONST[mean_id // 9]
@@ -150,16 +151,16 @@ def get_fourier_coefs(vec_one_idc):
     dft = np.fft.fft(vec_one_idc)
     dft_real = np.real(dft)
     dft_imag = np.imag(dft)
-    return np.concatenate((dft_real[:20], dft_imag[:20]))
+    return np.concatenate((dft_real[:NUM_FOURIER_COEFS], dft_imag[:NUM_FOURIER_COEFS]))
 
 def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
                       opt_pred, downsample, downsample_frac):
-    [vec_r_pos, vec_rphi_pos, vec_z_pos,
+    [vec_r_pos, vec_phi_pos, vec_z_pos,
      num_mean_zero_idc_a, num_mean_zero_idc_c, num_random_zero_idc_a, num_random_zero_idc_c,
      vec_mean_one_idc_a, vec_mean_one_idc_c, vec_random_one_idc_a, vec_random_one_idc_c,
      *_,
      vec_mean_corr_r, vec_random_corr_r,
-     vec_mean_corr_rphi, vec_random_corr_rphi,
+     vec_mean_corr_phi, vec_random_corr_phi,
      vec_mean_corr_z, vec_random_corr_z] = load_data_original_idc(dirinput, event_index)
 
     vec_sel_out_z = (output_z_range[0] <= vec_z_pos) & (vec_z_pos < output_z_range[1])
@@ -178,7 +179,7 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
     dft_coefs = get_fourier_coefs(vec_one_idc_fluc)
 
     mat_fluc_corr = np.array((vec_random_corr_r - vec_mean_corr_r,
-                              vec_random_corr_rphi - vec_mean_corr_rphi,
+                              vec_random_corr_phi - vec_mean_corr_phi,
                               vec_random_corr_z - vec_mean_corr_z))
     _, mat_der_ref_mean_corr = load_data_derivatives_ref_mean_idc(dirinput, vec_sel_in_z)
 
@@ -187,8 +188,8 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
     vec_exp_corr_fluc = vec_exp_corr_fluc[vec_sel_out_z]
 
     inputs = np.zeros((vec_der_ref_mean_corr.size,
-                       4 + vec_one_idc_fluc.size + num_zero_idc_fluc.size))
-    for ind, pos in enumerate((vec_r_pos, vec_rphi_pos, vec_z_pos)):
+                       4 + dft_coefs.size + num_zero_idc_fluc.size))
+    for ind, pos in enumerate((vec_r_pos, vec_phi_pos, vec_z_pos)):
         inputs[:, ind] = pos[vec_sel_in_z]
     inputs[:, 3] = vec_der_ref_mean_corr
     inputs[:, 3:3+num_zero_idc_fluc.size] = num_zero_idc_fluc
