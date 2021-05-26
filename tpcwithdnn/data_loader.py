@@ -146,6 +146,11 @@ def downsample_data(data_size, downsample_frac):
         chosen[sel_ind] = True
     return chosen
 
+def get_fourier_coefs(vec_one_idc):
+    dft = np.fft.fft(vec_one_idc)
+    dft_real = np.real(dft)
+    dft_imag = np.imag(dft)
+    return np.concatenate((dft_real[:20], dft_imag[:20]))
 
 def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
                       opt_pred, downsample, downsample_frac):
@@ -170,10 +175,11 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
                num_random_zero_idc_a - num_mean_zero_idc_a),
               (vec_random_one_idc_c - vec_mean_one_idc_c,
                num_random_zero_idc_c - num_mean_zero_idc_c), input_z_range)
+    dft_coefs = get_fourier_coefs(vec_one_idc_fluc)
 
-    mat_fluc_corr = (vec_random_corr_r - vec_mean_corr_r,
-                     vec_random_corr_rphi - vec_mean_corr_rphi,
-                     vec_random_corr_z - vec_mean_corr_z)
+    mat_fluc_corr = np.array((vec_random_corr_r - vec_mean_corr_r,
+                              vec_random_corr_rphi - vec_mean_corr_rphi,
+                              vec_random_corr_z - vec_mean_corr_z))
     _, mat_der_ref_mean_corr = load_data_derivatives_ref_mean_idc(dirinput, vec_sel_in_z)
 
     vec_exp_corr_fluc, vec_der_ref_mean_corr =\
@@ -186,8 +192,7 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
         inputs[:, ind] = pos[vec_sel_in_z]
     inputs[:, 3] = vec_der_ref_mean_corr
     inputs[:, 3:3+num_zero_idc_fluc.size] = num_zero_idc_fluc
-    inputs[:, -vec_one_idc_fluc.size:] = vec_one_idc_fluc
-    vec_exp_corr_fluc = vec_exp_corr_fluc[vec_sel_out_z]
+    inputs[:, -dft_coefs.size:] = dft_coefs # pylint: disable=invalid-unary-operand-type
 
     return inputs, vec_exp_corr_fluc
 

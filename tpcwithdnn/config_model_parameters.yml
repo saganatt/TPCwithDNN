@@ -1,7 +1,7 @@
 common:
-  dirmodel: model_idc
-  dirval: validation_idc
-  dirplots: plots_idc
+  dirmodel: model_fourier
+  dirval: validation_fourier
+  dirplots: plots_fourier
   #dirinput_bias: /data/tpcml/data_20200518/bias
   #dirinput_nobias: /data/tpcml/data_20200518/nobias
   dirinput_bias: /mnt/temp/dsekihat/data/tpcml/data_20210414/noDistortions
@@ -17,9 +17,9 @@ common:
   validate_model: true
   pdf_map_var: flucSC
   pdf_map_mean_id: 0
-  grid_phi: 180
-  grid_z: 33
-  grid_r: 33
+  grid_phi: 90
+  grid_z: 17
+  grid_r: 17
   input_z_range: [0, 251] # train for distortions with min <= z < max
   output_z_range: [0, 251] # apply for distortions with min <= z < max
   opt_train: [1, 1] #first position = meanSC, second = SCfluctuations
@@ -31,10 +31,10 @@ common:
 
 xgboost:
   active: True
-  train_events: [500]
-  test_events: [80]
+  train_events: [200]
+  test_events: [100]
   apply_events: [200]
-  downsample: True
+  downsample: False
   downsample_fraction: 0.2
   plot_train: True
   train_plot_npoints: 10
