@@ -20,6 +20,9 @@ np.random.seed(SEED)
 import tensorflow as tf
 tf.random.set_seed(SEED)
 
+import matplotlib
+matplotlib.use("Agg")
+
 import yaml
 
 import tpcwithdnn.check_root # pylint: disable=unused-import
