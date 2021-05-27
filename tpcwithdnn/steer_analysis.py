@@ -2,7 +2,6 @@
 main script for doing tpc calibration with dnn
 """
 # pylint: disable=fixme
-import sys
 import os
 import argparse
 from timeit import default_timer as timer
@@ -131,7 +130,7 @@ def main():
                         type=str, help="path to the *.yml steering file")
     args = parser.parse_args()
 
-    logger.info("Using configuration: %s steer file: %s" % (args.config_file, args.steer_file))
+    logger.info("Using configuration: %s steer file: %s", args.config_file, args.steer_file)
 
     with open(args.steer_file, "r") as steer_data:
         default = yaml.safe_load(steer_data)
