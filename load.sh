@@ -9,8 +9,8 @@
 
 
 VIRTUALENV_PATH=~/.virtualenvs/tpcwithdnn
-PYTHON_BIN=/usr/bin/python3.6
-PYTHON_VERSION=3.6
+PYTHON_BIN=/opt/conda/bin/python
+PYTHON_VERSION=3.7
 
 create-virtualenv ()
 {
@@ -89,7 +89,7 @@ then
             create-virtualenv --force
         fi
         export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$LD_LIBRARY_PATH;
-        export ALICE_ROOT=/home/pyadmin/alice/sw/ubuntu1804_x86-64/AliRoot/master-1
+        export ALICE_ROOT=/home/jupyter/alice/sw/ubuntu1804_x86-64/AliRoot/master-1
         activate-virtualenv
 
         # If not on aliceml inform user to source own ROOT

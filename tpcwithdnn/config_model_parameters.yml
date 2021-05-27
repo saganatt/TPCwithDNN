@@ -4,8 +4,8 @@ common:
   dirplots: plots_fourier
   #dirinput_bias: /data/tpcml/data_20200518/bias
   #dirinput_nobias: /data/tpcml/data_20200518/nobias
-  dirinput_bias: /mnt/temp/dsekihat/data/tpcml/data_20210414/noDistortions
-  dirinput_nobias: /mnt/temp/dsekihat/data/tpcml/data_20210414/noDistortions
+  dirinput_bias: /home/jupyter/data/20210414/noDistortions
+  dirinput_nobias: /home/jupyter/data/20210414/noDistortions
   train_bias: true
   test_bias: true
   apply_bias: false
