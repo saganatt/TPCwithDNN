@@ -25,22 +25,14 @@ class XGBoostOptimiser(Optimiser):
     def train(self):
         self.config.logger.info("XGBoostOptimiser::train")
         model = XGBRFRegressor(verbosity=1, **(self.config.params))
-        start = timer()
         inputs, exp_outputs = self.get_data_("train")
-        end = timer()
-        log_time(start, end, "load train")
         log_memory_usage(((inputs, "Input train data"), (exp_outputs, "Output train data")))
-        self.config.logger.info("Memory usage after loading data")
-        log_total_memory_usage()
+        log_total_memory_usage("Memory usage after loading data")
         if self.config.plot_train:
             inputs_val, outputs_val = self.get_data_("validation")
             log_memory_usage(((inputs_val, "Input val data"), (outputs_val, "Output val data")))
-            self.config.logger.info("Memory usage after loading val data")
-            log_total_memory_usage()
-            start = timer()
+            log_total_memory_usage("Memory usage after loading val data")
             self.plot_train_(model, inputs, exp_outputs, inputs_val, outputs_val)
-            end = timer()
-            log_time(start, end, "train plot")
         start = timer()
         model.fit(inputs, exp_outputs)
         end = timer()
@@ -50,21 +42,14 @@ class XGBoostOptimiser(Optimiser):
     def apply(self):
         self.config.logger.info("XGBoostOptimiser::apply, input size: %d", self.config.dim_input)
         loaded_model = self.load_model()
-        start = timer()
         inputs, exp_outputs = self.get_data_("apply")
-        end = timer()
-        log_time(start, end, "load apply")
         log_memory_usage(((inputs, "Input apply data"), (exp_outputs, "Output apply data")))
-        self.config.logger.info("Memory usage after loading apply data")
-        log_total_memory_usage()
+        log_total_memory_usage("Memory usage after loading apply data")
         start = timer()
         pred_outputs = loaded_model.predict(inputs)
         end = timer()
         log_time(start, end, "actual predict")
-        start = timer()
         self.plot_apply_(exp_outputs, pred_outputs)
-        end = timer()
-        log_time(start, end, "plot apply")
         self.config.logger.info("Done apply")
 
     def search_grid(self):
@@ -89,7 +74,7 @@ class XGBoostOptimiser(Optimiser):
         downsample = self.config.downsample if partition == "train" else False
         inputs = []
         exp_outputs = []
-        for ind, indexev in enumerate(self.config.partition[partition]):
+        for indexev in self.config.partition[partition]:
             inputs_single, exp_outputs_single = load_event_idc(self.config.dirinput_train,
                                                                indexev, self.config.input_z_range,
                                                                self.config.output_z_range,

@@ -192,7 +192,7 @@ def load_data_one_idc(dirinput, event_index, input_z_range, output_z_range,
     for ind, pos in enumerate((vec_r_pos, vec_phi_pos, vec_z_pos)):
         inputs[:, ind] = pos[vec_sel_in_z]
     inputs[:, 3] = vec_der_ref_mean_corr
-    inputs[:, 3:3+num_zero_idc_fluc.size] = num_zero_idc_fluc
+    inputs[:, 4:4+num_zero_idc_fluc.size] = num_zero_idc_fluc
     inputs[:, -dft_coefs.size:] = dft_coefs # pylint: disable=invalid-unary-operand-type
 
     return inputs, vec_exp_corr_fluc

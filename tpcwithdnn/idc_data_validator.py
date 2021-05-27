@@ -143,7 +143,7 @@ class IDCDataValidator():
             for ind, pos in enumerate((vec_r_pos, vec_phi_pos, vec_z_pos)):
                 inputs[:, ind] = pos
             inputs[:, 3] = vec_der_ref_mean_corr
-            inputs[:, 3:3+fluc_zero_idc.size] = fluc_zero_idc
+            inputs[:, 4:4+fluc_zero_idc.size] = fluc_zero_idc
             inputs[:, -dft_coefs.size:] = dft_coefs # pylint: disable=invalid-unary-operand-type
             df_single_map[column_names[30]] = loaded_model.predict(inputs)
 
