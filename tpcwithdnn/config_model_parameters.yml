@@ -17,9 +17,9 @@ common:
   validate_model: true
   pdf_map_var: flucSC
   pdf_map_mean_id: 0
-  grid_phi: 90
-  grid_z: 17
-  grid_r: 17
+  grid_phi: 180
+  grid_z: 33
+  grid_r: 33
   input_z_range: [0, 251] # train for distortions with min <= z < max
   output_z_range: [0, 251] # apply for distortions with min <= z < max
   opt_train: [1, 1] #first position = meanSC, second = SCfluctuations
@@ -31,10 +31,10 @@ common:
 
 xgboost:
   active: True
-  train_events: [200]
+  train_events: [400]
   test_events: [100]
   apply_events: [400]
-  downsample: False
+  downsample: True
   downsample_fraction: 0.2
   plot_train: False
   train_plot_npoints: 10
