@@ -11,7 +11,7 @@ from ROOT import TCavas, TLegend, TLatex, TPaveText # pylint: disable=import-err
 from ROOT import TH1F, TH2F, TFile # pylint: disable=import-error, no-name-in-module
 from ROOT import kWhite, kBlue, kGreen, kRed, kCyan, kOrange, kMagenta # pylint: disable=import-error, no-name-in-module
 
-"Global ROOT configuration, loaded only once"
+# Global ROOT configuration, loaded only once
 gROOT.SetStyle("Plain")
 gROOT.SetBatch()
 gStyle.SetOptStat(0)
@@ -233,6 +233,7 @@ def add_desc(config, content):
 
 def draw_multievent_hist(config, events_counts, func_label, hist_name, source_hist):
     gROOT.ForceStyle()
+    TH1.AddDirectory(False)
     gran_str = "%d#times %d #times %d" % (config.grid_phi, config.grid_r,
                                           config.grid_z)
     date = datetime.date.today().strftime("%Y%m%d")
@@ -255,52 +256,40 @@ def draw_multievent_hist(config, events_counts, func_label, hist_name, source_hi
     sel_opts_names = sel_opts_names[sel_opts == 1]
     sel_var_labels = var_labels[sel_opts == 1]
     for opt_name, var_label in zip(sel_opts_names, sel_var_labels):
-        x_label = "d#it{%s}_{true} (cm)" % var_label
-        y_label = "%s of d#it{%s}_{pred} - d#it{%s}_{true} (cm)" %\
-                  (func_label, var_label, var_label)
-        frame.GetXaxis().SetTitle(x_label)
-        frame.GetYaxis().SetTitle(y_label)
+        frame.GetXaxis().SetTitle("d#it{%s}_{true} (cm)" % var_label)
+        frame.GetYaxis().SetTitle("%s of d#it{%s}_{pred} - d#it{%s}_{true} (cm)" %\
+                                  (func_label, var_label, var_label))
 
         # TODO: Clean these codes
-        for i, (train_events, _, _, _) in enumerate(events_counts):
+        for i, color, (train_events, _, _, _) in enumerate(zip(colors, events_counts)):
             filename = "%s/output_%s_nEv%d.root" % (config.dirval, config.suffix, train_events)
             config.logger.info("Reading %s...", filename)
-
             root_file = TFile.Open(filename, "read")
-            hist = root_file.Get("%s_all_events_%s" % (source_hist, config.suffix))
-            hist.SetDirectory(0)
-            hist.Draw("same")
-            hist.SetMarkerStyle(20)
-            hist.SetMarkerColor(colors[i])
-            hist.SetLineColor(colors[i])
-            # train_events_k = train_events / 1000
-            leg.AddEntry(hist, "%d, %s" % (train_events, gran_str), "LP")
 
             if "mean" in hist_name and "std" in hist_name:
-                hist.Delete("C")
-                leg.DeleteEntry()
                 hist_mean = root_file.Get("%s_all_events_%s" % \
                         (config.profile_name, config.suffix))
                 hist_stddev = root_file.Get("%s_all_events_%s" % \
                         (config.h_std_dev_name, config.suffix))
-                hist_mean.SetDirectory(0)
-                hist_stddev.SetDirectory(0)
                 hist = hist_mean.ProjectionX("hist_meanSD")
                 hist.Reset()
                 hist.Sumw2()
-                hist.SetDirectory(0)
-                nbin = hist_mean.GetNbinsX()
-                for ibin in range(0,nbin):
+                for ibin in range(0, hist_mean.GetNbinsX()):
                     hist.SetBinContent(ibin+1, hist_mean.GetBinContent(ibin+1))
                     hist.SetBinError(ibin+1, hist_stddev.GetBinContent(ibin+1))
-
-                hist.SetMarkerStyle(20)
-                hist.SetMarkerColor(colors[i])
-                hist.SetLineColor(colors[i])
-                hist.SetFillColor(colors[i])
-                hist.SetFillStyle(3001)
                 hist.Draw("sameE2")
-                leg.AddEntry(hist, "%d, %s" % (train_events, gran_str), "FP")
+                hist.SetFillColor(color)
+                hist.SetFillStyle(3001)
+                leg_style = "FP"
+            else:
+                hist = root_file.Get("%s_all_events_%s" % (source_hist, config.suffix))
+                hist.Draw("same")
+                leg_style = "LP"
+            hist.SetMarkerStyle(20)
+            hist.SetMarkerColor(color)
+            hist.SetLineColor(color)
+            # train_events_k = train_events / 1000
+            leg.AddEntry(hist, "%d, %s" % (train_events, gran_str), leg_style)
 
             root_file.Close()
 
@@ -311,6 +300,8 @@ def draw_multievent_hist(config, events_counts, func_label, hist_name, source_hi
         txt.Draw()
         save_canvas(config, canvas, frame, "%s/%s" % (config.dirplots, date),
                     hist_name, file_formats)
+
+    TH1.AddDirectory(True)
 
 def draw_mean(config, events_counts):
     draw_multievent_hist(config, events_counts, "#it{#mu}", "mean", config.profile_name)
