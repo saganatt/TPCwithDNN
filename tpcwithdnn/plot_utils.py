@@ -12,7 +12,7 @@ from ROOT import gROOT  # pylint: disable=import-error, no-name-in-module
 
 gROOT.SetStyle("Plain")
 gROOT.SetBatch()
-gStyle.SetOptStat(0)
+#gStyle.SetOptStat(0)
 gStyle.SetTextFont(42)
 gStyle.SetLabelFont(42, "xyz")
 gStyle.SetTitleFont(42, "xyz")
