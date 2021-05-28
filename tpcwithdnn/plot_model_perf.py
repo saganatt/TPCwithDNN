@@ -1,4 +1,5 @@
 # pylint: disable=too-many-locals, too-many-statements, fixme
+import os
 import datetime
 from ROOT import TFile, TCanvas # pylint: disable=import-error, no-name-in-module
 from ROOT import kBlue, kGreen, kRed, kOrange # pylint: disable=import-error, no-name-in-module
@@ -6,6 +7,9 @@ from ROOT import kFullSquare, kFullCircle, kFullTriangleUp, kFullDiamond # pylin
 from ROOT import kOpenSquare, kOpenCircle, kOpenTriangleUp, kOpenDiamond # pylint: disable=import-error, no-name-in-module
 
 from tpcwithdnn.plot_utils import setup_frame, setup_legend, setup_text
+
+NEVS_90 = [10000, 18000] # 5000
+NEVS_180 = [10000, 18000]
 
 def add_cut_desc(txt, cuts, x_var, add_alice):
     if add_alice:
@@ -20,24 +24,31 @@ def add_cut_desc(txt, cuts, x_var, add_alice):
     #txt.AddText("20 epochs")
     return txt
 
-def draw_model_perf():
-    trees_dir = "/mnt/temp/mkabus/val-20201209/trees"
-    suffix = "filter4_poo0_drop0.00_depth4_batch0_scaler0_useSCMean1_useSCFluc1_pred_doR1" \
-             "_dophi0_doz0/"
+def draw_model_perf(dirplots, model):
+    if not os.path.isdir(dirplots):
+        os.makedirs(dirplots)
+
+    if model == "dnn":
+        trees_dir = "/mnt/temp/mkabus/val-20201209/trees"
+        suffix = "filter4_poo0_drop0.00_depth4_batch0_scaler0_useSCMean1_useSCFluc1_pred_doR1" \
+                 "_dophi0_doz0/"
+    elif model == "bdt":
+        trees_dir = "/mnt/temp/mkabus/idc-20210529/trees"
+        suffix = "nest100_depth3_lr1.000_tm-hist_g0.00_weight1.0_d0.0_sub0.80" \
+                 "_colTree1.0_colLvl1.0_colNode0.8_a0.0_l0.00005_scale1.0_base0.50" \
+                 "_pred_doR1_dophi0_doz0_input_z0.0-251.0_output_z0.0-251.0"
+    else:
+        raise ValueError("Unknown model name: %s" % model)
     pdf_dir_90 = "%s/phi90_r17_z17_%s" % (trees_dir, suffix)
     pdf_dir_180 = "%s/phi180_r33_z33_%s" % (trees_dir, suffix)
-
-    filename = "model_perf_90-180"
-    file_formats = ["png"] # "pdf" - lasts long
-
-    nevs_90 = [10000, 18000] # 5000
-    nevs_180 = [10000, 18000]
-    nevs = nevs_90 + nevs_180
-    pdf_files_90 = ["%s/pdfmaps_nEv%d.root" % (pdf_dir_90, nev) for nev in nevs_90]
-    pdf_files_180 = ["%s/pdfmaps_nEv%d.root" % (pdf_dir_180, nev) for nev in nevs_180]
+    nevs = NEVS_90 + NEVS_180
+    pdf_files_90 = ["%s/pdfmaps_nEv%d.root" % (pdf_dir_90, nev) for nev in NEVS_90]
+    pdf_files_180 = ["%s/pdfmaps_nEv%d.root" % (pdf_dir_180, nev) for nev in NEVS_180]
     pdf_file_names = pdf_files_90 + pdf_files_180
 
-    grans = [90, 90, 180, 180]
+    filename = "model_perf_90-180"
+
+    grans = [90] * len(NEVS_90) + [180] * len(NEVS_180)
 
     colors = [kBlue, kOrange, kGreen, kRed]
     markers_list = [(kFullSquare, kOpenSquare), (kFullCircle, kOpenCircle),
@@ -128,14 +139,13 @@ def draw_model_perf():
         txt = setup_text(xmin=0.5, ymin=0.75, xmax=0.9, ymax=0.89, text_size=0.03)
         txt = add_cut_desc(txt, cuts, x_var_short, add_alice=False)
         txt.Draw()
-        for ff in file_formats:
-            canvas.SaveAs("%s_%s_%s_%s_%s.%s" % (date, filename, x_var_short,
-                                                 y_vars[0], y_vars[1], ff))
+        canvas.SaveAs("%s/%s_%s_%s_%s_%s.png" % (dirplots, date, filename, x_var_short,
+                                                 y_vars[0], y_vars[1]))
     for pdf_file in pdf_files:
         pdf_file.Close()
 
 def main():
-    draw_model_perf()
+    draw_model_perf(dirplots="bdt-perf-plots", model="bdt")
 
 if __name__ == "__main__":
     main()

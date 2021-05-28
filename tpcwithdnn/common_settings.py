@@ -212,8 +212,8 @@ class XGBoostSettings:
                 (self.suffix, self.params["gamma"], self.params["min_child_weight"],
                  self.params["max_delta_step"], self.params["subsample"])
         self.suffix = "%s_colTree%.1f_colLvl%.1f_colNode%.1f" %\
-                (self.suffix, self.params["colsample_bynode"], self.params["colsample_bytree"],
-                 self.params["colsample_bylevel"])
+                (self.suffix, self.params["colsample_bytree"], self.params["colsample_bylevel"],
+                 self.params["colsample_bynode"])
         self.suffix = "%s_a%.1f_l%.5f_scale%.1f_base%.2f" %\
                 (self.suffix, self.params["reg_alpha"], self.params["reg_lambda"],
                  self.params["scale_pos_weight"], self.params["base_score"])
