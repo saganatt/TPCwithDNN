@@ -1,11 +1,15 @@
 # pylint: disable=too-many-locals, too-many-statements, fixme
 import datetime
-from ROOT import TFile, TCanvas, TPaveText # pylint: disable=import-error, no-name-in-module
-from ROOT import kBlue, kGreen, kRed, kOrange, kWhite # pylint: disable=import-error, no-name-in-module
+from ROOT import TFile, TCanvas # pylint: disable=import-error, no-name-in-module
+from ROOT import kBlue, kGreen, kRed, kOrange # pylint: disable=import-error, no-name-in-module
 from ROOT import kFullSquare, kFullCircle, kFullTriangleUp, kFullDiamond # pylint: disable=import-error, no-name-in-module
 from ROOT import kOpenSquare, kOpenCircle, kOpenTriangleUp, kOpenDiamond # pylint: disable=import-error, no-name-in-module
 
-def add_cut_desc(txt, cuts, x_var):
+from tpcwithdnn.plot_utils import setup_frame, setup_legend, setup_text
+
+def add_cut_desc(txt, cuts, x_var, add_alice):
+    if add_alice:
+        txt.AddText("ALICE work in progress")
     txt.AddText(cuts["deltaSC"]["desc"](cuts["deltaSC"]["%s_lim" % x_var]))
     txt.AddText("%s, 20 epochs" % cuts["z"]["desc"](cuts["z"]["%s_lim" % x_var]))
     #for cut_var in cuts:
@@ -91,7 +95,8 @@ def draw_model_perf():
     canvas = TCanvas()
     canvas.SetMargin(0.13, 0.05, 0.12, 0.05)
     canvas.SetTicks(1, 1)
-    leg = setup_legend(x1=0.3, y1=0.15, x2=0.75, y2=0.4, text_size=0.03, ncols=3, margin=0.2)
+    leg = setup_legend(xmin=0.3, ymin=0.15, xmax=0.75, ymax=0.4, text_size=0.03,
+                       ncols=3, margin=0.2)
 
     pdf_files = [TFile.Open(pdf_file_name, "read") for pdf_file_name in pdf_file_names]
     trees = [pdf_file.Get("pdfmaps") for pdf_file in pdf_files]
@@ -120,10 +125,8 @@ def draw_model_perf():
             hist.SetMinimum(-0.06)
             hist.Draw("same")
         leg.Draw()
-        #tex = add_alice_text(x=0.52, y=0.75, text_size=0.04)
-        #tex.Draw()
         txt = setup_text(xmin=0.5, ymin=0.75, xmax=0.9, ymax=0.89, text_size=0.03)
-        txt = add_cut_desc(txt, cuts, x_var_short, draw_alice=False)
+        txt = add_cut_desc(txt, cuts, x_var_short, add_alice=False)
         txt.Draw()
         for ff in file_formats:
             canvas.SaveAs("%s_%s_%s_%s_%s.%s" % (date, filename, x_var_short,

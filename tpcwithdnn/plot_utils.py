@@ -7,9 +7,9 @@ import numpy as np
 from root_numpy import fill_hist # pylint: disable=import-error
 
 from ROOT import gROOT, gStyle, gPad # pylint: disable=import-error, no-name-in-module
-from ROOT import TCavas, TLegend, TLatex, TPaveText # pylint: disable=import-error, no-name-in-module
-from ROOT import TH1F, TH2F, TFile # pylint: disable=import-error, no-name-in-module
-from ROOT import kWhite, kBlue, kGreen, kRed, kCyan, kOrange, kMagenta # pylint: disable=import-error, no-name-in-module
+from ROOT import TCanvas, TLegend, TPaveText # pylint: disable=import-error, no-name-in-module
+from ROOT import TH1, TH1F, TH2F, TFile # pylint: disable=import-error, no-name-in-module
+from ROOT import kWhite, kBlue, kGreen, kRed, kCyan, kOrange, kMagenta, kDarkBodyRadiator # pylint: disable=import-error, no-name-in-module
 
 # Global ROOT configuration, loaded only once
 gROOT.SetStyle("Plain")
@@ -147,9 +147,9 @@ def plot_distortion(config, h_dist, h_deltas, h_deltas_vs_dist, prof, suffix, op
                 "d#it{%s}_{pred} (cm)" % opt_name.lower(),
                 x_offset=1.2, y_offset=1.2, label_size=0.04)
     h_dist.Draw("colz")
-    txt1 = add_desc(config, 0.18, 0.7, 0.3, 0.9, 0.04,
-                    {"add_alice": False, "add_gran": True, "add_inputs": False,
-                     "add_events": True})
+    txt1 = setup_text(0.18, 0.7, 0.3, 0.9, 0.04)
+    txt1 = add_desc(txt1, config, {"add_alice": False, "add_gran": True, "add_inputs": False,
+                    "add_events": True})
     txt1.Draw()
     c2 = cev.cd(2)
     c2.SetMargin(0.12, 0.05, 0.12, 0.05)
@@ -157,9 +157,9 @@ def plot_distortion(config, h_dist, h_deltas, h_deltas_vs_dist, prof, suffix, op
     setup_frame(h_deltas_vs_dist, "d#it{%s}_{true} (cm)" % opt_name.lower(),
                 "Entries", x_offset=1.2, y_offset=1.2, label_size=0.04)
     h_deltas_vs_dist.ProjectionX().Draw()
-    txt2 = add_desc(config, 0.18, 0.7, 0.3, 0.9, 0.04,
-                    {"add_alice": False, "add_gran": True, "add_inputs": False,
-                     "add_events": True})
+    txt2 = setup_text(0.18, 0.7, 0.3, 0.9, 0.04)
+    txt2 = add_desc(txt2, config, {"add_alice": False, "add_gran": True, "add_inputs": False,
+                    "add_events": True})
     txt2.Draw()
     c3 = cev.cd(3)
     c3.SetMargin(0.12, 0.05, 0.12, 0.05)
@@ -168,9 +168,9 @@ def plot_distortion(config, h_dist, h_deltas, h_deltas_vs_dist, prof, suffix, op
                                 (opt_name.lower(), opt_name.lower()),
                 "Entries", x_offset=1.2, y_offset=1.5, label_size=0.04)
     h_deltas.Draw()
-    txt3 = add_desc(config, 0.18, 0.7, 0.3, 0.9, 0.04,
-                    {"add_alice": False, "add_gran": True, "add_inputs": False,
-                     "add_events": True})
+    txt3 = setup_text(0.18, 0.7, 0.3, 0.9, 0.04)
+    txt3 = add_desc(txt3, config, {"add_alice": False, "add_gran": True, "add_inputs": False,
+                    "add_events": True})
     txt3.Draw()
     c4 = cev.cd(4)
     c4.SetMargin(0.15, 0.05, 0.12, 0.05)
@@ -179,58 +179,15 @@ def plot_distortion(config, h_dist, h_deltas, h_deltas_vs_dist, prof, suffix, op
                         (opt_name.lower(), opt_name.lower()),
                 x_offset=1.2, y_offset=1.8, label_size=0.04)
     prof.Draw()
-    txt4 = add_desc(config, 0.45, 0.7, 0.85, 0.9, 0.04,
-                    {"add_alice": False, "add_gran": True, "add_inputs": False,
-                     "add_events": True})
+    txt4 = setup_text(0.45, 0.7, 0.85, 0.9, 0.04)
+    txt4 = add_desc(txt4, config, {"add_alice": False, "add_gran": True, "add_inputs": False,
+                    "add_events": True})
     txt4.Draw()
     cev.SaveAs("%s/canvas_%s_nEv%d.pdf" % (config.dirplots, suffix,
                                            config.train_events))
 
-def setup_canvas(suffix, hist_name, opt_name):
-    full_name = "%s_canvas_%s_%s" % (hist_name, suffix, opt_name)
-    canvas = TCanvas(full_name, full_name, 0, 0, 800, 800)
-    canvas.SetMargin(0.12, 0.05, 0.12, 0.05) # left, right, bottom, top
-    canvas.SetTicks(1, 1)
-    return canvas
 
-def save_canvas(config, canvas, frame, prefix, func_name, file_formats):
-    file_name = "%s_wide_%s_%s" % (prefix, func_name, config.suffix)
-    for file_format in file_formats:
-        canvas.SaveAs("%s.%s" % (file_name, file_format))
-    frame.GetYaxis().SetRangeUser(-0.05, +0.05)
-    file_name = "%s_zoom_%s_%s" % (prefix, func_name, config.suffix)
-    for file_format in file_formats:
-        canvas.SaveAs("%s.%s" % (file_name, file_format))
-
-def setup_text(xmin, ymin, xmax, ymax, text_size):
-    txt = TPaveText(xmin, ymin, xmax, ymax, "NDC")
-    txt.SetFillColor(kWhite)
-    txt.SetFillStyle(0)
-    txt.SetBorderSize(0)
-    txt.SetTextAlign(12) # middle,left
-    txt.SetTextFont(42) # helvetica
-    txt.SetTextSize(size)
-    return txt
-
-def add_desc(config, content):
-    if content["add_alice"]:
-        txt.AddText("ALICE work in progress")
-    if content["add_gran"]:
-        gran_desc = "#it{n}_{#it{#varphi}} #times #it{n}_{#it{r}} #times #it{n}_{#it{z}}"
-        gran_str = "%d #times %d #times %d" % (config.grid_phi, config.grid_r,
-                                               config.grid_z)
-        txt.AddText("%s = %s" % (gran_desc, gran_str))
-    if content["add_inputs"]:
-        if config.opt_train[0] == 1 and config.opt_train[1] == 1:
-            txt.AddText("inputs: #it{#rho}_{SC} - <#it{#rho}_{SC}>, <#it{#rho}_{SC}>")
-        elif config.opt_train[1] == 1:
-            txt.AddText("inputs: #it{#rho}_{SC} - <#it{#rho}_{SC}>")
-    if content["add_events"]:
-        txt.AddText("#it{N}_{ev}^{training} = %d" % config.train_events)
-    if config.name == "dnn":
-        txt.AddText("%d epochs" % config.epochs)
-    return txt
-
+# Utilities for profile plots
 def draw_multievent_hist(config, events_counts, func_label, hist_name, source_hist):
     gROOT.ForceStyle()
     TH1.AddDirectory(False)
@@ -244,24 +201,20 @@ def draw_multievent_hist(config, events_counts, func_label, hist_name, source_hi
     # canvas = setup_canvas(suffix, hist_name, opt_name)
     frame = canvas.DrawFrame(-5, -0.5, +5, +0.5)
     setup_frame(frame, "", "", x_offset=1.5, y_offset=1.5, label_size=0.04)
-    leg = setup_legend(x1=0.5, y1=0.7, x2=0.9, y2=0.9, text_size=0.03)
+    leg = setup_legend(xmin=0.5, ymin=0.7, xmax=0.9, ymax=0.9, text_size=0.03)
 
     file_formats = ["pdf", "png"]
-    # file_formats = ["png", "eps", "pdf"]
     var_labels = np.array(["r", "r#varphi", "z"])
     colors = [kBlue+1, kGreen+2, kRed+1, kCyan+2, kOrange+7, kMagenta+2]
     #colors = [kRed+1, kMagenta+2, kOrange+7, kCyan+1, kMagenta+2]
-    sel_opts = np.array(config.opt_predout)
-    sel_opts_names = np.array(config.nameopt_predout)
-    sel_opts_names = sel_opts_names[sel_opts == 1]
-    sel_var_labels = var_labels[sel_opts == 1]
-    for opt_name, var_label in zip(sel_opts_names, sel_var_labels):
+    sel_var_labels = var_labels[np.array(config.opt_predout) == 1]
+    for var_label in sel_var_labels:
         frame.GetXaxis().SetTitle("d#it{%s}_{true} (cm)" % var_label)
         frame.GetYaxis().SetTitle("%s of d#it{%s}_{pred} - d#it{%s}_{true} (cm)" %\
                                   (func_label, var_label, var_label))
 
         # TODO: Clean these codes
-        for i, color, (train_events, _, _, _) in enumerate(zip(colors, events_counts)):
+        for color, (train_events, _, _, _) in zip(colors, events_counts):
             filename = "%s/output_%s_nEv%d.root" % (config.dirval, config.suffix, train_events)
             config.logger.info("Reading %s...", filename)
             root_file = TFile.Open(filename, "read")
@@ -294,8 +247,8 @@ def draw_multievent_hist(config, events_counts, func_label, hist_name, source_hi
             root_file.Close()
 
         leg.Draw()
-        txt = add_desc(config, 0.15, 0.81, 0.4, 0.89, 0.03,
-                       {"add_alice": False, "add_gran": False, "add_inputs": True,
+        txt = setup_text(0.15, 0.81, 0.4, 0.89, 0.03)
+        txt = add_desc(txt, config, {"add_alice": False, "add_gran": False, "add_inputs": True,
                         "add_events": False})
         txt.Draw()
         save_canvas(config, canvas, frame, "%s/%s" % (config.dirplots, date),
@@ -314,7 +267,64 @@ def draw_mean_std_dev(config, events_counts):
     draw_multievent_hist(config, events_counts, "#it{#mu} #pm #it{#sigma}_{std}",
                          "mean_std_dev", config.profile_name)
 
-def setup_frame(frame, x_label, y_label, z_label=None, x_offset=1.0, y_offset=1.2, z_offset=1.2, label_size=0.04, title_size=None):
+def save_canvas(config, canvas, frame, prefix, func_name, file_formats):
+    file_name = "%s_wide_%s_%s" % (prefix, func_name, config.suffix)
+    for file_format in file_formats:
+        canvas.SaveAs("%s.%s" % (file_name, file_format))
+    frame.GetYaxis().SetRangeUser(-0.05, +0.05)
+    file_name = "%s_zoom_%s_%s" % (prefix, func_name, config.suffix)
+    for file_format in file_formats:
+        canvas.SaveAs("%s.%s" % (file_name, file_format))
+
+
+# Utilities for both profile and performance validation plots
+def setup_text(xmin, ymin, xmax, ymax, text_size):
+    txt = TPaveText(xmin, ymin, xmax, ymax, "NDC")
+    txt.SetFillColor(kWhite)
+    txt.SetFillStyle(0)
+    txt.SetBorderSize(0)
+    txt.SetTextAlign(12) # middle,left
+    txt.SetTextFont(42) # helvetica
+    txt.SetTextSize(text_size)
+    return txt
+
+def add_desc(txt, config, content):
+    if content["add_alice"]:
+        txt.AddText("ALICE work in progress")
+    if content["add_gran"]:
+        gran_desc = "#it{n}_{#it{#varphi}} #times #it{n}_{#it{r}} #times #it{n}_{#it{z}}"
+        gran_str = "%d #times %d #times %d" % (config.grid_phi, config.grid_r,
+                                               config.grid_z)
+        txt.AddText("%s = %s" % (gran_desc, gran_str))
+    if content["add_inputs"]:
+        if config.opt_train[0] == 1 and config.opt_train[1] == 1:
+            txt.AddText("inputs: #it{#rho}_{SC} - <#it{#rho}_{SC}>, <#it{#rho}_{SC}>")
+        elif config.opt_train[1] == 1:
+            txt.AddText("inputs: #it{#rho}_{SC} - <#it{#rho}_{SC}>")
+    if content["add_events"]:
+        txt.AddText("#it{N}_{ev}^{training} = %d" % config.train_events)
+    if config.name == "dnn":
+        txt.AddText("%d epochs" % config.epochs)
+    return txt
+
+def setup_legend(xmin, ymin, xmax, ymax, text_size=0.03, ncols=None, margin=None):
+    leg = TLegend(xmin, ymin, xmax, ymax)
+    if ncols is not None:
+        leg.SetNColumns(ncols)
+    leg.SetBorderSize(0)
+    leg.SetTextFont(42)
+    leg.SetTextSize(text_size)
+    if margin is not None:
+        leg.SetMargin(margin)
+    leg.SetHeader("Train setup: #it{N}_{ev}^{training}, #it{n}_{#it{#varphi}}" +\
+                  " #times #it{n}_{#it{r}} #times #it{n}_{#it{z}}", "C")
+
+    return leg
+
+
+# Utilities for input and performance validation plots
+def setup_frame(frame, x_label, y_label, z_label=None, x_offset=1.0, y_offset=1.2, z_offset=1.2,
+                label_size=0.04, title_size=None):
     if frame is None:
         frame = gPad.GetPrimitive("htemp")
     if title_size is None:
@@ -339,22 +349,11 @@ def setup_frame(frame, x_label, y_label, z_label=None, x_offset=1.0, y_offset=1.
         frame.GetZaxis().SetTitleSize(label_size)
         frame.GetZaxis().SetLabelSize(label_size)
 
-def setup_legend(x1, y1, x2, y2, text_size=0.03, ncols=None, margin=None):
-    leg = TLegend(x1, y1, x2, y2)
-    if ncols is not None:
-        leg.SetNColumns(ncols)
-    leg.SetBorderSize(0)
-    leg.SetTextFont(42)
-    leg.SetTextSize(text_size)
-    if margin is not None:
-        leg.SetMargin(margin)
-    leg.SetHeader("Train setup: #it{N}_{ev}^{training}, #it{n}_{#it{#varphi}}" +\
-                  " #times #it{n}_{#it{r}} #times #it{n}_{#it{z}}", "C")
 
-    return leg
-
-def add_alice_text(x, y, text_size=0.04):
-    tex = TLatex(x, y, "#scale[0.8]{ALICE work in progress}")
-    tex.SetTextSize(text_size)
-    tex.SetNDC()
-    return tex
+# Unused, to be checked
+def setup_canvas(suffix, hist_name, opt_name):
+    full_name = "%s_canvas_%s_%s" % (hist_name, suffix, opt_name)
+    canvas = TCanvas(full_name, full_name, 0, 0, 800, 800)
+    canvas.SetMargin(0.12, 0.05, 0.12, 0.05) # left, right, bottom, top
+    canvas.SetTicks(1, 1)
+    return canvas
