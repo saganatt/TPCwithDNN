@@ -11,7 +11,7 @@ common:
   apply_bias: false
   diroutflattree: /mnt/temp/mkabus/idc-20210508/trees
   dirouthistograms: /mnt/temp/mkabus/idc-20210508/histograms
-  val_events: 400 # Number of events for validation (random events for nd_validation)
+  val_events: 600 # Number of events for validation (random events for nd_validation)
   use_partition: apply # Whether the validator uses only the events from given partition
                         # 'random' is for choosing events randomly
   validate_model: true
@@ -31,7 +31,7 @@ common:
 
 xgboost:
   active: True
-  train_events: [400]
+  train_events: [600]
   test_events: [100]
   apply_events: [400]
   downsample: True

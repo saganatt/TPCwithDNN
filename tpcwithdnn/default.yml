@@ -4,7 +4,7 @@ doplot: true
 dogrid: false
 dobayes: false
 doprofile: false
-docreatevaldata: false
+docreatevaldata: true
 docreatepdfmaps: false
 docreatepdfmapforvariable: false
 docreatepdfmapformeanid: false
