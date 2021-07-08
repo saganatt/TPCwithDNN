@@ -95,24 +95,28 @@ def draw_input(dirplots, draw_idc):
     set_margins(c1)
     c1.SaveAs("%s/flucSC_r_z_profcolz_phi_sector0.png" % dirplots)
 
-    t.Draw("flucSC:r:z>>htemp(65, 0, 250, 65, 83, 255)", "phi>0 && phi<3.14/9 && eventId == 0", "profcolz")
+    t.Draw("flucSC:r:z>>htemp(65, 0, 250, 65, 83, 255)", "phi>0 && phi<3.14/9 && eventId == 0",
+           "profcolz")
     setup_frame("#it{z} (cm)", "#it{r} (cm)", "#it{#rho}_{SC} - #it{<#rho>}_{SC} (fC/cm^{3})")
     set_margins(c1)
     c1.SaveAs("%s/r_z_flucSC_profcolz_phi_sector0_event0.png" % dirplots)
 
-    t.Draw("r:z:flucDistR>>htemp(65, 0, 250, 65, 83, 255)", "phi>0 && phi<3.14/9 && eventId == 0", "colz")
+    t.Draw("r:z:flucDistR>>htemp(65, 0, 250, 65, 83, 255)", "phi>0 && phi<3.14/9 && eventId == 0",
+           "colz")
     setup_frame("#it{z} (cm)", "#it{r} (cm)", "distortion fluctuation d#it{r} - <d#it{r}> (cm)",
                 z_offset=1.5)
     set_margins(c1)
     c1.SaveAs("%s/r_z_flucDistR_colz_phi_sector0_event0.png" % dirplots)
 
-    t.Draw("r:z:flucDistRPhi>>htemp(65, 0, 250, 65, 83, 255)", "phi>0 && phi<3.14/9 && eventId == 0", "colz")
-    setup_frame("#it{z} (cm)", "#it{r} (cm)", "distortion fluctuation d#it{r#varphi} - <d#it{r#varphi}> (cm)",
-                z_offset=1.5)
+    t.Draw("r:z:flucDistRPhi>>htemp(65, 0, 250, 65, 83, 255)",
+           "phi>0 && phi<3.14/9 && eventId == 0", "colz")
+    setup_frame("#it{z} (cm)", "#it{r} (cm)",
+                "distortion fluctuation d#it{r#varphi} - <d#it{r#varphi}> (cm)", z_offset=1.5)
     set_margins(c1)
     c1.SaveAs("%s/r_z_flucDistRPhi_colz_phi_sector0_event0.png" % dirplots)
 
-    t.Draw("r:z:flucDistZ>>htemp(65, 0, 250, 65, 83, 255)", "phi>0 && phi<3.14/9 && eventId == 0", "colz")
+    t.Draw("r:z:flucDistZ>>htemp(65, 0, 250, 65, 83, 255)",
+           "phi>0 && phi<3.14/9 && eventId == 0", "colz")
     setup_frame("#it{z} (cm)", "#it{r} (cm)", "distortion fluctuation d#it{z} - <d#it{z}> (cm)",
                 z_offset=1.5)
     set_margins(c1)
