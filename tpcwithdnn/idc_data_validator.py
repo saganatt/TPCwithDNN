@@ -97,32 +97,24 @@ class IDCDataValidator():
         vec_fluc_one_idc[:random_one_idc.size] = fluc_one_idc
         vec_fluc_one_idc[random_one_idc.size:] = 0.
 
-        vec_index_random = np.empty(vec_z_pos.size)
-        vec_index_random[:] = irnd
-        vec_index_mean = np.empty(vec_z_pos.size)
-        vec_index_mean[:] = imean
-        vec_index = np.empty(vec_z_pos.size)
-        vec_index[:] = irnd + 1000 * imean
-
         vec_fluc_sc = vec_mean_sc - vec_random_sc
-        vec_delta_sc = np.empty(vec_z_pos.size)
-        vec_delta_sc[:] = sum(vec_fluc_sc) / sum(vec_mean_sc)
+        delta_sc = sum(vec_fluc_sc) / sum(vec_mean_sc)
 
-        vec_delta_one_idc = sum(vec_fluc_one_idc) / sum(vec_mean_one_idc)
+        delta_one_idc = sum(vec_fluc_one_idc) / sum(vec_mean_one_idc)
 
-        df_single_map = pd.DataFrame({column_names[0] : vec_index,
-                                      column_names[1] : vec_index_mean,
-                                      column_names[2] : vec_index_random,
+        df_single_map = pd.DataFrame({column_names[0] : irnd + 1000 * imean,
+                                      column_names[1] : imean,
+                                      column_names[2] : irnd,
                                       column_names[3] : vec_r_pos,
                                       column_names[4] : vec_phi_pos,
                                       column_names[5] : vec_z_pos,
                                       column_names[6] : vec_fluc_sc,
                                       column_names[7] : vec_mean_sc,
-                                      column_names[8] : vec_delta_sc,
+                                      column_names[8] : delta_sc,
                                       column_names[9] : vec_der_ref_mean_sc,
                                       column_names[10] : vec_fluc_one_idc,
                                       column_names[11] : vec_mean_one_idc,
-                                      column_names[12] : vec_delta_one_idc,
+                                      column_names[12] : delta_one_idc,
                                       column_names[13] : vec_fluc_zero_idc,
                                       column_names[14] : vec_mean_zero_idc})
 
