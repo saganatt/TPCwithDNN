@@ -43,7 +43,7 @@ class IDCDataValidator():
          vec_mean_dist_z, vec_random_dist_z,
          vec_mean_corr_r, vec_random_corr_r,
          vec_mean_corr_rphi, vec_random_corr_rphi,
-         vec_mean_corr_z, vec_random_corr_z] = load_data_original_idc(self.config.dirinput_val,
+         vec_mean_corr_z, vec_random_corr_z] = load_data_original_idc(self.config.dirinput_nd_val,
                                                                     [irnd, imean])
 
         vec_sel_z = (self.config.input_z_range[0] <= vec_z_pos) &\
@@ -145,11 +145,11 @@ class IDCDataValidator():
     def create_data(self):
         self.config.logger.info("DataValidator::create_data")
 
-        vec_z_pos = np.load("%s/Pos/vecZPos.npy" % self.config.dirinput_val)
+        vec_z_pos = np.load("%s/Pos/vecZPos.npy" % self.config.dirinput_nd_val)
         vec_sel_z = (self.config.input_z_range[0] <= vec_z_pos) &\
                        (vec_z_pos < self.config.input_z_range[1])
         vec_der_ref_mean_sc, mat_der_ref_mean_corr = \
-            load_data_derivatives_ref_mean_idc(self.config.dirinput_val, vec_sel_z)
+            load_data_derivatives_ref_mean_idc(self.config.dirinput_nd_val, vec_sel_z)
 
         dist_names = np.array(self.config.nameopt_predout)[np.array(self.config.opt_predout) > 0]
         column_names = np.array(["eventId", "meanId", "randomId", "r", "phi", "z",
