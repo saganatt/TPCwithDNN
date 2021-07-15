@@ -54,8 +54,8 @@ class CommonSettings:
         self.dirmodel = data_param["dirmodel"]
         self.dirapply = data_param["dirapply"]
         self.dirplots = data_param["dirplots"]
-        self.diroutflattree = data_param["diroutflattree"]
-        self.dirouthistograms = data_param["dirouthistograms"]
+        self.dirtree = data_param["dirtree"]
+        self.dirhist = data_param["dirhist"]
         train_dir = data_param["dirinput_bias"] if data_param["train_bias"] \
                     else data_param["dirinput_nobias"]
         test_dir = data_param["dirinput_bias"] if data_param["test_bias"] \
@@ -77,8 +77,8 @@ class CommonSettings:
             os.makedirs(self.dirapply)
         if not os.path.isdir(self.dirplots):
             os.makedirs(self.dirplots)
-        if not os.path.isdir(self.diroutflattree):
-            os.makedirs(self.diroutflattree)
+        if not os.path.isdir(self.dirtree):
+            os.makedirs(self.dirtree)
 
         self.suffix = None
         self.suffix_ds = "phi%d_r%d_z%d" % \
@@ -172,10 +172,10 @@ class DNNSettings:
         self.suffix = "%s_output_z%.1f-%.1f" % \
                 (self.suffix, self.output_z_range[0], self.output_z_range[1])
 
-        if not os.path.isdir("%s/%s" % (self.diroutflattree, self.suffix)):
-            os.makedirs("%s/%s" % (self.diroutflattree, self.suffix))
-        if not os.path.isdir("%s/%s" % (self.dirouthistograms, self.suffix)):
-            os.makedirs("%s/%s" % (self.dirouthistograms, self.suffix))
+        if not os.path.isdir("%s/%s" % (self.dirtree, self.suffix)):
+            os.makedirs("%s/%s" % (self.dirtree, self.suffix))
+        if not os.path.isdir("%s/%s" % (self.dirhist, self.suffix)):
+            os.makedirs("%s/%s" % (self.dirhist, self.suffix))
 
         self.logger.info("I am processing the configuration %s", self.suffix)
 
@@ -224,10 +224,10 @@ class XGBoostSettings:
         self.suffix = "%s_output_z%.1f-%.1f" % \
                 (self.suffix, self.output_z_range[0], self.output_z_range[1])
 
-        if not os.path.isdir("%s/%s" % (self.diroutflattree, self.suffix)):
-            os.makedirs("%s/%s" % (self.diroutflattree, self.suffix))
-        if not os.path.isdir("%s/%s" % (self.dirouthistograms, self.suffix)):
-            os.makedirs("%s/%s" % (self.dirouthistograms, self.suffix))
+        if not os.path.isdir("%s/%s" % (self.dirtree, self.suffix)):
+            os.makedirs("%s/%s" % (self.dirtree, self.suffix))
+        if not os.path.isdir("%s/%s" % (self.dirhist, self.suffix)):
+            os.makedirs("%s/%s" % (self.dirhist, self.suffix))
 
         self.logger.info("I am processing the configuration %s", self.suffix)
 
