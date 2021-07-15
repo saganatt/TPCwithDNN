@@ -181,7 +181,7 @@ class IDCDataValidator():
                 os.remove(tree_filename)
 
             counter = 0
-            if self.config.use_partition != 'random':
+            if self.config.nd_val_partition != 'random':
                 for ind_ev in self.config.part_inds:
                     if ind_ev[1] != imean:
                         continue
@@ -190,7 +190,7 @@ class IDCDataValidator():
                     self.create_data_for_event(imean, irnd, column_names, vec_der_ref_mean_sc,
                                                mat_der_ref_mean_corr, loaded_model, tree_filename)
                     counter = counter + 1
-                    if counter == self.config.val_events:
+                    if counter == self.config.nd_val_events:
                         break
             else:
                 for irnd in range(self.config.maxrandomfiles):
@@ -198,7 +198,7 @@ class IDCDataValidator():
                     self.create_data_for_event(imean, irnd, column_names, vec_der_ref_mean_sc,
                                                mat_der_ref_mean_corr, loaded_model, tree_filename)
                     counter = counter + 1
-                    if counter == self.config.val_events:
+                    if counter == self.config.nd_val_events:
                         break
 
             self.config.logger.info("Tree written in %s", tree_filename)
